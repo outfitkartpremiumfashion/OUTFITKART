@@ -15,61 +15,61 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "https://placehold.co/72x72/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/96x96/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/128x128/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/144x144/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/152x152/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/192x192/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/192x192/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://placehold.co/256x256/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "256x256",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/512x512/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/512x512/e11d48/ffffff?text=OK",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -77,14 +77,14 @@
   ],
   "screenshots": [
     {
-      "src": "https://placehold.co/390x844/e11d48/ffffff?text=OutfitKart+Mobile",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "OutfitKart on Mobile"
     },
     {
-      "src": "https://placehold.co/1280x720/e11d48/ffffff?text=OutfitKart+Desktop",
+      "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
@@ -97,21 +97,21 @@
       "short_name": "Shop",
       "description": "Browse all products",
       "url": "./index.html?view=shop&source=shortcut",
-      "icons": [{ "src": "https://placehold.co/96x96/e11d48/ffffff?text=S", "sizes": "96x96" }]
+      "icons": [{ "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png", "sizes": "96x96" }]
     },
     {
       "name": "My Cart",
       "short_name": "Cart",
       "description": "View your cart",
       "url": "./index.html?view=cart&source=shortcut",
-      "icons": [{ "src": "https://placehold.co/96x96/e11d48/ffffff?text=C", "sizes": "96x96" }]
+      "icons": [{ "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png", "sizes": "96x96" }]
     },
     {
       "name": "My Orders",
       "short_name": "Orders",
       "description": "Track your orders",
       "url": "./index.html?view=orders&source=shortcut",
-      "icons": [{ "src": "https://placehold.co/96x96/e11d48/ffffff?text=O", "sizes": "96x96" }]
+      "icons": [{ "src": "https://i.ibb.co/8DxtmN09/IMG-20260323-141417.png", "sizes": "96x96" }]
     }
   ]
 }
