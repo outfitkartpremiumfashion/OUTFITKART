@@ -143,18 +143,7 @@ function i18n(key){return(TRANSLATIONS[_currentLang]||TRANSLATIONS['en'])[key]||
 function setLanguage(lang){_currentLang=lang;localStorage.setItem('outfitkart_lang',lang);applyLanguage();const btn=document.getElementById('lang-toggle-btn');if(btn)btn.textContent=lang==='hi'?'EN':'हि';showToast(lang==='hi'?'🇮🇳 हिंदी मोड चालू':'🇬🇧 English Mode On');}
 function applyLanguage(){const t=TRANSLATIONS[_currentLang]||TRANSLATIONS['en'];document.querySelectorAll('#mobile-search,#desktop-search').forEach(el=>{if(el)el.placeholder=t.search_placeholder;});const navText=document.getElementById('nav-profile-text');if(navText&&!currentUser)navText.textContent=t.login;}
 
-/* ============================================================
-   5. HEADER — LANG TOGGLE INJECTION
-   ============================================================ */
-function _injectLangToggle(){
-    if(document.getElementById('lang-toggle-btn'))return;
-    const headerRight=document.querySelector('header .flex.items-center.gap-3');if(!headerRight)return;
-    const btn=document.createElement('button');btn.id='lang-toggle-btn';btn.title='Switch Language';
-    btn.textContent=_currentLang==='hi'?'EN':'हि';
-    btn.style.cssText='width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#C8102E);color:white;border:none;font-weight:900;font-size:11px;cursor:pointer;flex-shrink:0;box-shadow:0 2px 8px rgba(200,16,46,0.3);display:flex;align-items:center;justify-content:center;';
-    btn.onclick=()=>setLanguage(_currentLang==='hi'?'en':'hi');
-    headerRight.insertBefore(btn,headerRight.firstChild);
-}
+
 
 /* ============================================================
    6. HEADER PROFILE PHOTO
@@ -503,6 +492,56 @@ function exitAdmin(){
     isAdminLoggedIn=false;
     ['outfitkart_admin_session','outfitkart_admin_name'].forEach(k=>localStorage.removeItem(k));
     document.body.classList.remove('admin-active');navigate('home');
+}
+
+/* ============================================================
+   PWA Update Detection — NEW
+   ============================================================ */
+let newWorker = null;
+let updateAvailable = false;
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('updatefound', () => {
+    newWorker = navigator.serviceWorker.controller?.registration?.installing;
+    
+    if (newWorker) {
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed') {
+          // Only show if it's a real update (controller exists)
+          if (navigator.serviceWorker.controller) {
+            updateAvailable = true;
+            showUpdateBanner();
+          }
+        }
+      });
+    }
+  });
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
+function showUpdateBanner() {
+  const banner = document.getElementById('pwa-update-banner');
+  if (banner) {
+    banner.classList.remove('hidden');
+  }
+}
+
+window.applyPwaUpdate = function() {
+  if (newWorker && updateAvailable) {
+    newWorker.postMessage({ type: 'SKIP_WAITING' });
+    hideUpdateBanner();
+    showToast('🔄 Updating app...');
+  }
+};
+
+function hideUpdateBanner() {
+  const banner = document.getElementById('pwa-update-banner');
+  if (banner) {
+    banner.classList.add('hidden');
+  }
 }
 
 /* ============================================================
