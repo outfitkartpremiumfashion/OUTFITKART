@@ -1186,6 +1186,16 @@
         </div>
     </div>
 
+    <!-- PWA Update Available Banner -->
+    <div id="pwa-update-banner" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-rose-600 to-rose-700 text-white px-6 py-4 rounded-2xl shadow-2xl z-[100] hidden flex items-center gap-4 max-w-sm w-[90vw] md:max-w-md">
+      <i class="fas fa-download text-xl"></i>
+      <div>
+        <div class="font-bold text-base">📱 Update Available</div>
+        <div class="text-sm opacity-90">New version ready! Get latest features.</div>
+      </div>
+      <button id="pwa-update-btn" onclick="applyPwaUpdate()" class="ml-auto bg-white text-rose-600 px-5 py-2 rounded-xl font-bold text-sm hover:bg-rose-50 active:scale-95 transition-all whitespace-nowrap">Update Now</button>
+    </div>
+
     <!-- PWA Install Banner -->
     <div id="pwa-install-banner" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-rose-600 to-rose-700 text-white p-4 shadow-2xl z-[70] hidden md:flex items-center justify-between transform translate-y-full transition-transform duration-300 ease-in-out">
         <div class="flex items-center gap-3"><div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center"><i class="fas fa-shopping-bag text-2xl"></i></div><div><h3 class="font-bold text-lg">OutfitKart</h3><p class="text-sm opacity-90">Install for better experience</p></div></div>
@@ -1216,7 +1226,7 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             // 1. Service Worker Register karein
-            navigator.serviceWorker.register('./sw.js?v=8')
+            navigator.serviceWorker.register('./sw.js?v=4')
             .then(reg => {
                 console.log('SW Registered!');
                 
