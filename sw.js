@@ -1,56 +1,66 @@
 /* ============================================================
-   OutfitKart Service Worker — v5
-   Push Notifications + Caching
+   OutfitKart Service Worker — v6
+   ⚠️  v6: Cache purge — logo fix, script-fixes.js removed
    ============================================================ */
 
-const STATIC_CACHE  = 'outfitkart-static-v5';
-const DYNAMIC_CACHE = 'outfitkart-dynamic-v5';
+const STATIC_CACHE  = 'outfitkart-static-v6';
+const DYNAMIC_CACHE = 'outfitkart-dynamic-v6';
+
 const PRECACHE_URLS = [
     './index.html',
     './manifest.json',
     './styles.css',
     './script-core.js',
     './script-admin.js',
-    './script-fixes.js'
+    /* script-fixes.js removed — merged into script-core.js */
 ];
 
+/* ── INSTALL: cache core files ───────────────────────────── */
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(c => c.addAll(PRECACHE_URLS).catch(() => {}))
     );
+    /* Force new SW to activate immediately — no waiting */
     self.skipWaiting();
 });
 
+/* ── ACTIVATE: delete ALL old caches ────────────────────── */
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(
-                keys.filter(k => k !== STATIC_CACHE && k !== DYNAMIC_CACHE)
-                    .map(k => caches.delete(k))
+                keys
+                    .filter(k => k !== STATIC_CACHE && k !== DYNAMIC_CACHE)
+                    .map(k => {
+                        console.log('[SW v6] Deleting old cache:', k);
+                        return caches.delete(k);
+                    })
             )
         )
     );
+    /* Take control of all open tabs immediately */
     self.clients.claim();
 });
 
+/* ── FETCH ───────────────────────────────────────────────── */
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
     if (!event.request.url.startsWith('http')) return;
 
     const url = new URL(event.request.url);
 
-    /* Never cache API / payment / upload calls */
+    /* ── Never cache: API / payment / upload / location ── */
     if (
-        url.hostname.includes('supabase.co') ||
-        url.hostname.includes('razorpay.com') ||
-        url.hostname.includes('imgbb.com') ||
-        url.hostname.includes('api.imgbb.com') ||
-        url.hostname.includes('api.postalpincode.in') ||
+        url.hostname.includes('supabase.co')            ||
+        url.hostname.includes('razorpay.com')           ||
+        url.hostname.includes('imgbb.com')              ||
+        url.hostname.includes('api.imgbb.com')          ||
+        url.hostname.includes('api.postalpincode.in')   ||
         url.hostname.includes('nominatim.openstreetmap.org')
     ) return;
 
-    /* HTML — network first, fall back to cached index */
+    /* ── HTML: network first, fallback to cached index ── */
     if (event.request.headers.get('accept')?.includes('text/html')) {
         event.respondWith(
             fetch(event.request)
@@ -63,28 +73,45 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    /* JS / CSS — stale-while-revalidate */
+    /* ── JS / CSS: network first (always get fresh code) ── */
     if (url.pathname.match(/\.(js|css|woff2?)$/)) {
         event.respondWith(
-            caches.open(STATIC_CACHE).then(cache =>
-                cache.match(event.request).then(cached => {
-                    const fresh = fetch(event.request).then(res => {
-                        cache.put(event.request, res.clone());
-                        return res;
-                    });
-                    return cached || fresh;
+            fetch(event.request)
+                .then(res => {
+                    if (res.ok) {
+                        caches.open(STATIC_CACHE).then(c => c.put(event.request, res.clone()));
+                    }
+                    return res;
                 })
-            )
+                .catch(() => caches.match(event.request))
         );
         return;
     }
 
-    /* Images — cache first */
+    /* ── Logo / brand images: NETWORK FIRST (never serve stale logo) ── */
+    if (
+        url.hostname.includes('i.ibb.co')   ||
+        url.hostname.includes('ibb.co')     ||
+        url.pathname.includes('IMG-20260323')   /* our specific logo filename */
+    ) {
+        event.respondWith(
+            fetch(event.request)
+                .then(res => {
+                    if (res.ok) {
+                        /* Update cache with fresh logo */
+                        caches.open(DYNAMIC_CACHE).then(c => c.put(event.request, res.clone()));
+                    }
+                    return res;
+                })
+                .catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    /* ── Other images: cache first (product photos etc.) ── */
     if (
         url.pathname.match(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/) ||
-        url.hostname.includes('placehold.co') ||
-        url.hostname.includes('ibb.co') ||
-        url.hostname.includes('i.ibb.co') ||
+        url.hostname.includes('placehold.co')                    ||
         url.hostname.includes('unsplash.com')
     ) {
         event.respondWith(
@@ -101,7 +128,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    /* Default — network with cache fallback */
+    /* ── Default: network with cache fallback ── */
     event.respondWith(
         fetch(event.request)
             .then(res => {
@@ -166,4 +193,11 @@ self.addEventListener('notificationclick', event => {
             if (clients.openWindow) return clients.openWindow(targetUrl);
         })
     );
+});
+
+/* ── SW UPDATE MESSAGE (from app) ────────────────────────── */
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
