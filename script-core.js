@@ -2,7 +2,7 @@
     
 const SUPABASE_URL      = 'https://wlgytgwmmefwpljstque.supabase.co';
 const SUPABASE_KEY      = 'sb_publishable_fFampYvNGSn7TE0TOy56dQ_xXrer_P8';
-const RAZORPAY_KEY      = 'rzp_live_SRZMbmo0aTi8xs';
+const RAZORPAY_KEY      = 'rzp_live_SWzEQTC3IbLWE5';
 const IMGBB_KEY         = '3949e4873d8510691ee63026d22eeb75';
 const SUPPORT_WA        = '918982296773';
 const SUPPORT_EMAIL     = 'outfitkartpremiumfashion@gmail.com';
@@ -958,42 +958,128 @@ function updateWishlistCount(){const badge=document.getElementById('wishlist-cou
 function renderWishlist(){const container=document.getElementById('wishlist-container');const items=products.filter(p=>wishlist.includes(p.id));container.innerHTML=items.length?items.map(p=>createProductCard(p)).join(''):'<div class="col-span-full text-center text-gray-500 py-10"><i class="far fa-heart text-4xl mb-3 block"></i>Wishlist is empty</div>';}
 
 /* ============================================================
-   30. PRODUCT DETAIL
+   30. PRODUCT DETAIL (UPDATED)
    ============================================================ */
-async function openProductPage(id,isGoldProduct=false){
-    let p=products.find(x=>x.id===id);if(!p)p=goldProducts.find(x=>x.id===id);if(!p)return;
-    viewingProductId=p.id;addToRecentlyViewed(id);
-    const isPerf=isPerfumeCategory(p.category);
-    const sizeArray=isPerf?(p.available_sizes?.length?p.available_sizes:PERFUME_ML_SIZES):(p.available_sizes?.length?p.available_sizes:getDefaultSizes(p.sub||p.category));
-    const isCombo=COMBO_SUBS.has(p.sub||'');selectedComboParts=null;selectedSize=sizeArray[1]||sizeArray[0];
-    if(isCombo){const groups=getComboSizeGroups(sizeArray);selectedComboParts={};if(groups.topwear.length)selectedComboParts.topwear=groups.topwear[0];if(groups.bottomwear.length)selectedComboParts.bottomwear=groups.bottomwear[0];if(groups.footwear.length)selectedComboParts.footwear=groups.footwear[0];if(groups.watch.length)selectedComboParts.watch=groups.watch[0];_composeComboSizeLabel();}
-    const imgList=p.imgs?.length?p.imgs:(p.img?[p.img]:['https://placehold.co/600x420/eee/333?text=No+Image']);
-    const sizeLabel=isPerf?i18n('volume_select'):i18n('size_select');
-    const isGold=p.is_gold||isGoldProduct||false;const desc=p.description||p.desc||'Premium quality product.';
+async function openProductPage(id, isGoldProduct = false) {
+    let p = products.find(x => x.id === id); if (!p) p = goldProducts.find(x => x.id === id); if (!p) return;
+    viewingProductId = p.id; addToRecentlyViewed(id);
+    const isPerf = isPerfumeCategory(p.category);
+    const sizeArray = isPerf ? (p.available_sizes?.length ? p.available_sizes : PERFUME_ML_SIZES) : (p.available_sizes?.length ? p.available_sizes : getDefaultSizes(p.sub || p.category));
+    const isCombo = COMBO_SUBS.has(p.sub || ''); selectedComboParts = null; selectedSize = sizeArray[1] || sizeArray[0];
+
+    if (isCombo) {
+        const groups = getComboSizeGroups(sizeArray); selectedComboParts = {};
+        if (groups.topwear.length) selectedComboParts.topwear = groups.topwear[0];
+        if (groups.bottomwear.length) selectedComboParts.bottomwear = groups.bottomwear[0];
+        if (groups.footwear.length) selectedComboParts.footwear = groups.footwear[0];
+        if (groups.watch.length) selectedComboParts.watch = groups.watch[0];
+        _composeComboSizeLabel();
+    }
+
+    const imgList = p.imgs?.length ? p.imgs : (p.img ? [p.img] : ['https://placehold.co/600x420/eee/333?text=No+Image']);
+    const sizeLabel = isPerf ? i18n('volume_select') : i18n('size_select');
+    const isGold = p.is_gold || isGoldProduct || false; const desc = p.description || p.desc || 'Premium quality product.';
+
+    // --- Image Section Fixed for No-Crop ---
     let sliderHtml;
-    if(imgList.length===1){sliderHtml=`<div class="rounded-lg overflow-hidden border shadow-sm"><img src="${imgList[0]}" class="w-full h-[420px] object-cover" alt="${p.name}"></div>`;}
-    else{sliderHtml=`<div><div class="pdp-img-slider hide-scrollbar" id="pdp-slider-${id}">${imgList.map((src,i)=>`<img src="${src}" alt="${p.name} ${i+1}" data-index="${i}">`).join('')}</div><div class="pdp-thumb-strip mt-2" id="pdp-thumbs-${id}">${imgList.map((src,i)=>`<img src="${src}" alt="thumb ${i+1}" class="pdp-thumb ${i===0?'active':''}" data-index="${i}" onclick="pdpScrollToSlide(${i})">`).join('')}</div></div>`;}
-    document.getElementById('pdp-container').innerHTML=`${sliderHtml}<div class="flex flex-col justify-center">
-        <div class="text-xs font-bold uppercase mb-1" style="color:${isGold?'#B8860B':'#e11d48'}">${isGold?'⭐ Gold · ':''}${p.category}${p.sub?' › '+getSubDisplayName(p.sub):''}</div>
-        ${p.stock_qty?`<div class="text-xs text-green-600 font-semibold mb-2">📦 ${i18n('in_stock')}: ${p.stock_qty}</div>`:''}
-        <div class="flex justify-between items-start mb-2"><h1 class="text-3xl font-black text-gray-800">${p.name}</h1><div class="flex gap-2"><button onclick="shareWithReferral(${p.id},'${p.name.replace(/'/g,"\\'")}',${p.price})" class="bg-green-50 hover:bg-green-100 text-green-600 border border-green-200 rounded-full w-10 h-10 flex items-center justify-center shadow-sm"><i class="fas fa-share-alt"></i></button><button onclick="nativeShareProduct(${p.id},'${p.name.replace(/'/g,"\\'")}',${p.price})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-sm"><i class="fas fa-link"></i></button></div></div>
-        <div class="flex items-baseline gap-3 mb-4"><span class="text-3xl font-bold">₹${p.price}</span>${p.oldprice?`<span class="text-lg line-through font-semibold" style="color:#C8102E;opacity:0.72">₹${p.oldprice}</span>`:''}</div>
-        <p class="text-gray-600 text-sm mb-6">${desc}</p>
-        <div class="mb-6"><div class="font-bold text-sm mb-2">${sizeLabel}</div>
-          ${isPerf?`<div><div class="flex flex-wrap gap-2 mb-3" id="size-selector">${sizeArray.map(s=>`<button onclick="selectSize('${s}')" class="size-btn ${s===selectedSize?'selected':''} w-fit px-4 py-1.5 rounded-full border-2 font-bold text-sm transition-colors">${s}</button>`).join('')}</div><div class="flex items-center border-2 border-purple-200 rounded-xl overflow-hidden focus-within:border-purple-500 bg-white max-w-[220px]"><span class="bg-purple-100 px-3 py-2.5 text-purple-700 font-black text-sm border-r border-purple-200 whitespace-nowrap">ml</span><input type="number" id="pdp-custom-ml" placeholder="e.g. 45" min="1" max="2000" class="flex-1 px-3 py-2.5 text-sm font-bold outline-none" style="font-size:16px;" oninput="if(this.value&&!isNaN(this.value)){selectSize(this.value+'ml');document.querySelectorAll('#size-selector .size-btn').forEach(b=>b.classList.remove('selected'));}"></div></div>`
-          :`${isCombo?(()=>{const groups=getComboSizeGroups(sizeArray);const groupOrder=[['topwear','Topwear'],['bottomwear','Bottomwear'],['footwear','Footwear'],['watch','Watch']];const chunks=groupOrder.filter(([k])=>groups[k]?.length).map(([k,label])=>`<div class="mb-3"><div class="text-xs font-bold text-gray-500 mb-1">${label}</div><div class="flex flex-wrap gap-2" id="combo-size-${k}">${groups[k].map(s=>`<button onclick="selectComboPartSize('${k}','${s}')" class="size-btn ${(selectedComboParts&&selectedComboParts[k]===s)?'selected':''} w-fit px-4 py-2 min-w-[3rem] rounded-full border border-gray-300 font-bold transition-colors">${s}</button>`).join('')}</div></div>`);if(chunks.length)return chunks.join('');return`<div class="flex flex-wrap gap-3" id="size-selector">${sizeArray.map(s=>`<button onclick="selectSize('${s}')" class="size-btn ${s===selectedSize?'selected':''} w-fit px-4 py-2 min-w-[3rem] rounded-full border border-gray-300 font-bold transition-colors">${s}</button>`).join('')}</div>`;})():`<div class="flex flex-wrap gap-3" id="size-selector">${sizeArray.map(s=>`<button onclick="selectSize('${s}')" class="size-btn ${s===selectedSize?'selected':''} w-fit px-4 py-2 min-w-[3rem] rounded-full border border-gray-300 font-bold transition-colors">${s}</button>`).join('')}</div>`}`}
+    if (imgList.length === 1) {
+        sliderHtml = `
+        <div class="rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-50 flex items-center justify-center" style="min-height: 350px;">
+            <img src="${imgList[0]}" class="w-full h-auto block" style="max-height: 500px; object-fit: contain;" alt="${p.name}">
+        </div>`;
+    } else {
+        sliderHtml = `
+        <div class="relative">
+            <div class="pdp-img-slider hide-scrollbar flex overflow-x-auto" id="pdp-slider-${id}" style="scroll-snap-type: x mandatory; background: #f8fafc; border-radius: 1.25rem;">
+                ${imgList.map((src, i) => `
+                    <div style="flex: 0 0 100%; width: 100%; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; min-height: 350px;">
+                        <img src="${src}" alt="${p.name} ${i+1}" style="width: 100%; height: auto; max-height: 500px; object-fit: contain;">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="pdp-thumb-strip mt-3 flex gap-2 overflow-x-auto pb-1 hide-scrollbar" id="pdp-thumbs-${id}">
+                ${imgList.map((src, i) => `
+                    <img src="${src}" alt="thumb ${i+1}" class="pdp-thumb w-14 h-14 rounded-lg object-cover border-2 transition-all ${i === 0 ? 'border-rose-500 shadow-md' : 'border-transparent opacity-60'}" 
+                    style="flex-shrink: 0;" data-index="${i}" onclick="pdpScrollToSlide(${i})">
+                `).join('')}
+            </div>
+        </div>`;
+    }
+
+    document.getElementById('pdp-container').innerHTML = `
+    ${sliderHtml}
+    <div class="flex flex-col justify-center mt-4">
+        <div class="text-xs font-bold uppercase mb-1" style="color:${isGold ? '#B8860B' : '#e11d48'}">${isGold ? '⭐ Gold · ' : ''}${p.category}${p.sub ? ' › ' + getSubDisplayName(p.sub) : ''}</div>
+        ${p.stock_qty ? `<div class="text-xs text-green-600 font-semibold mb-2">📦 ${i18n('in_stock')}: ${p.stock_qty}</div>` : ''}
+        
+        <div class="flex justify-between items-start mb-2">
+            <h1 class="text-2xl font-black text-gray-900 leading-tight">${p.name}</h1>
+            <div class="flex gap-2">
+                <button onclick="shareWithReferral(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price})" class="bg-green-50 text-green-600 rounded-full w-10 h-10 flex items-center justify-center border border-green-100 shadow-sm"><i class="fas fa-share-alt"></i></button>
+                <button onclick="nativeShareProduct(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price})" class="bg-gray-100 text-gray-800 rounded-full w-10 h-10 flex items-center justify-center border border-gray-200 shadow-sm"><i class="fas fa-link"></i></button>
+            </div>
         </div>
-        <div class="grid grid-cols-2 gap-3 mt-auto"><button onclick="addToCartPDP()" class="border-2 border-gray-800 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-50 active:scale-95 transition-all">${i18n('add_to_cart')}</button><button onclick="buyNowPDP()" class="bg-rose-600 text-white py-3 rounded-lg font-bold hover:bg-rose-700 active:scale-95 transition-all shadow-md">${i18n('buy_now')}</button></div>
+
+        <div class="flex items-baseline gap-3 mb-4">
+            <span class="text-3xl font-black text-gray-900">₹${p.price}</span>
+            ${p.oldprice ? `<span class="text-lg line-through font-semibold text-red-500 opacity-70">₹${p.oldprice}</span>` : ''}
+            ${p.oldprice ? `<span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">${Math.round(((p.oldprice - p.price) / p.oldprice) * 100)}% OFF</span>` : ''}
+        </div>
+
+        <p class="text-gray-600 text-sm leading-relaxed mb-6">${desc}</p>
+
+        <div class="mb-6">
+            <div class="font-bold text-sm text-gray-800 mb-3">${sizeLabel}</div>
+            ${isPerf ? `
+            <div>
+                <div class="flex flex-wrap gap-2 mb-3" id="size-selector">
+                    ${sizeArray.map(s => `<button onclick="selectSize('${s}')" class="size-btn ${s === selectedSize ? 'selected' : ''} px-4 py-2 rounded-full border-2 font-bold text-sm transition-all">${s}</button>`).join('')}
+                </div>
+                <div class="flex items-center border-2 border-purple-100 rounded-xl overflow-hidden bg-white max-w-[220px]">
+                    <span class="bg-purple-50 px-3 py-2.5 text-purple-600 font-black text-sm border-r border-purple-100">ml</span>
+                    <input type="number" id="pdp-custom-ml" placeholder="Custom" class="flex-1 px-3 py-2.5 text-sm font-bold outline-none" oninput="if(this.value){selectSize(this.value+'ml');document.querySelectorAll('#size-selector .size-btn').forEach(b=>b.classList.remove('selected'));}">
+                </div>
+            </div>` : 
+            `${isCombo ? (() => {
+                const groups = getComboSizeGroups(sizeArray);
+                const groupOrder = [['topwear', 'Topwear'], ['bottomwear', 'Bottomwear'], ['footwear', 'Footwear'], ['watch', 'Watch']];
+                return groupOrder.filter(([k]) => groups[k]?.length).map(([k, label]) => `
+                <div class="mb-4">
+                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">${label}</div>
+                    <div class="flex flex-wrap gap-2" id="combo-size-${k}">
+                        ${groups[k].map(s => `<button onclick="selectComboPartSize('${k}','${s}')" class="size-btn ${(selectedComboParts && selectedComboParts[k] === s) ? 'selected' : ''} px-4 py-2 min-w-[3.5rem] rounded-xl border border-gray-200 font-bold text-sm transition-all">${s}</button>`).join('')}
+                    </div>
+                </div>`).join('');
+            })() : `
+            <div class="flex flex-wrap gap-2" id="size-selector">
+                ${sizeArray.map(s => `<button onclick="selectSize('${s}')" class="size-btn ${s === selectedSize ? 'selected' : ''} px-4 py-2 min-w-[3.5rem] rounded-xl border border-gray-200 font-bold text-sm transition-all">${s}</button>`).join('')}
+            </div>`}`}
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-4">
+            <button onclick="addToCartPDP()" class="border-2 border-gray-900 text-gray-900 py-3.5 rounded-xl font-black text-sm hover:bg-gray-50 active:scale-95 transition-all uppercase tracking-wider">${i18n('add_to_cart')}</button>
+            <button onclick="buyNowPDP()" class="bg-rose-600 text-white py-3.5 rounded-xl font-black text-sm hover:bg-rose-700 active:scale-95 transition-all shadow-lg shadow-rose-200 uppercase tracking-wider">${i18n('buy_now')}</button>
+        </div>
     </div>`;
+
     navigate('product');
-    requestAnimationFrame(()=>setTimeout(_injectSafeDeliveryButton,80));
-    if(imgList.length>1){requestAnimationFrame(()=>{const slider=document.getElementById(`pdp-slider-${id}`);if(slider)slider.addEventListener('scroll',()=>{const idx=Math.round(slider.scrollLeft/slider.offsetWidth);updatePdpActiveThumbnail(id,idx);},{passive:true});});}
-    await loadReviews(p.id);renderRecommendedProducts(p.category,p.id);
+    requestAnimationFrame(() => setTimeout(_injectSafeDeliveryButton, 80));
+    if (imgList.length > 1) {
+        requestAnimationFrame(() => {
+            const slider = document.getElementById(`pdp-slider-${id}`);
+            if (slider) slider.addEventListener('scroll', () => {
+                const idx = Math.round(slider.scrollLeft / slider.offsetWidth);
+                updatePdpActiveThumbnail(id, idx);
+            }, { passive: true });
+        });
+    }
+    await loadReviews(p.id); renderRecommendedProducts(p.category, p.id);
 }
+
 window.pdpScrollToSlide=function(idx){const slider=document.getElementById(`pdp-slider-${viewingProductId}`);if(!slider)return;slider.scrollTo({left:idx*slider.offsetWidth,behavior:'smooth'});updatePdpActiveThumbnail(viewingProductId,idx);};
 function updatePdpActiveThumbnail(productId,activeIdx){document.getElementById(`pdp-thumbs-${productId}`)?.querySelectorAll('.pdp-thumb').forEach((t,i)=>t.classList.toggle('active',i===activeIdx));}
 function selectSize(size){selectedComboParts=null;selectedSize=size;const s=String(size||'').trim();document.querySelectorAll('#size-selector .size-btn').forEach(btn=>btn.classList.toggle('selected',btn.innerText.trim()===s));const inp=document.getElementById('pdp-custom-ml');if(inp&&!s.match(/^[0-9]+ml$/i))inp.value='';}
-async function addToCartPDP(){if(!currentUser){showToast('Login to add to cart 🛒');return navigate('profile');}addToCart(viewingProductId,selectedSize);}
+async function addToCartPDP(){if(!currentUser){showToast('Login to add to cart 🛒');return navigate('profile')}addToCart(viewingProductId,selectedSize);}
 function buyNowPDP(){if(!currentUser){showToast('Login to Buy!');return navigate('profile');}const p=products.find(x=>x.id===viewingProductId)||goldProducts.find(x=>x.id===viewingProductId);if(!p)return;currentCheckoutItems=[{...p,qty:1,size:selectedSize}];navigate('checkout');}
 
 async function loadReviews(prodId){const container=document.getElementById('pdp-reviews-list');try{const{data}=await dbClient.from('reviews').select('*').eq('product_id',prodId);container.innerHTML=data?.length?data.map(r=>`<div class="border-b pb-3"><div class="flex justify-between mb-1"><span class="font-bold text-sm">${r.user_name}</span><span class="text-xs text-gray-400">${r.date}</span></div><div class="text-yellow-400 text-xs mb-1">${'<i class="fas fa-star"></i>'.repeat(r.rating)}${'<i class="far fa-star"></i>'.repeat(5-r.rating)}</div><p class="text-sm text-gray-600">${r.comment}</p></div>`).join(''):'<p class="text-sm text-gray-500">No reviews yet. Be the first!</p>';}catch{container.innerHTML='<p class="text-sm text-gray-500">Could not load reviews.</p>';}}
