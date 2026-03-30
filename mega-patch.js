@@ -403,20 +403,44 @@ function _openProduct(p, isGold) {
 /* ═══════════════════════════════════════════════════════════════
    SECTION 2 — PROFILE PAGE SYSTEM (Fixed z-index)
    ═══════════════════════════════════════════════════════════════ */
+// ── Profile Page Overlay (kisi bhi view se kaam kare) ──────────
+(function _setupProfileOverlay() {
+  if (document.getElementById('ok-profile-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'ok-profile-overlay';
+  overlay.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:9999',
+    'background:#F7F5F2', 'display:none',
+    'flex-direction:column', 'overflow:hidden',
+    'animation:fadeIn 0.2s ease both'
+  ].join(';');
+  document.body.appendChild(overlay);
+})();
+
 window.openProfilePage = function(pageName) {
+  // Pehle saare profile pages hide karo
   document.querySelectorAll('.profile-page').forEach(p => p.classList.add('hidden'));
+
   const page = document.getElementById('profile-page-' + pageName);
   if (!page) { console.warn('[OutfitKart] Profile page not found:', pageName); return; }
 
-  // Agar page body ka direct child nahi hai to move karo taaki footer se bhi kaam kare
-  if (page.parentElement !== document.body) {
-    document.body.appendChild(page);
-  }
+  const overlay = document.getElementById('ok-profile-overlay');
+  if (!overlay) return;
 
-  page.classList.remove('hidden');
-  page.style.position = 'fixed';
-  page.style.inset = '0';
-  page.style.zIndex = '200';
+  // Page ka clone overlay mein dikhao (original apni jagah safe rahe)
+  overlay.innerHTML = '';
+  const clone = page.cloneNode(true);
+  clone.classList.remove('hidden');
+  clone.style.cssText = 'position:static;display:flex;flex-direction:column;height:100%;animation:fadeIn 0.2s ease both;background:#F7F5F2;';
+
+  // Clone ke back buttons ko fix karo
+  clone.querySelectorAll('.back-btn, [onclick*="closeProfilePage"]').forEach(btn => {
+    btn.onclick = window.closeProfilePage;
+  });
+
+  overlay.appendChild(clone);
+  overlay.style.display = 'flex';
+  overlay.scrollTop = 0;
 
   const loaders = {
     orders:     () => _loadProfileOrders(),
@@ -427,10 +451,11 @@ window.openProfilePage = function(pageName) {
     info:       () => _loadProfileInfo(),
   };
   if (loaders[pageName]) loaders[pageName]();
-  window.scrollTo(0, 0);
 };
 
 window.closeProfilePage = function() {
+  const overlay = document.getElementById('ok-profile-overlay');
+  if (overlay) overlay.style.display = 'none';
   document.querySelectorAll('.profile-page').forEach(p => p.classList.add('hidden'));
 };
 
