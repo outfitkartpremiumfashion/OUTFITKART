@@ -81,6 +81,22 @@ const CATEGORIES=[
          {label:'✨ Unisex',items:["Unisex Perfume","Luxury Perfume","Budget Perfume"]},
      ],
      sizesType:'ml',mlSizes:['10ml','20ml','30ml','50ml','75ml','100ml','150ml','200ml','250ml']},
+    {id:'combos',name:'Combos',
+     photo:'https://images.unsplash.com/photo-1445205170230-053b83016050?w=120&h=120&fit=crop&q=80',
+     subs:[
+         // Men Combos
+         'Casual Combo','Party Wear Combo','Gym Combo','Streetwear Combo','Office Combo',
+         // Women Combos
+         'Casual Outfit Combo','Party Combo','Ethnic Combo','Western Combo','College Wear Combo',
+         // Unisex Combos
+         'Couple Combo','Best Friend Combo','Matching Outfit Combo'
+     ],
+     groups:[
+         {label:'👕 Men Combos',items:['Casual Combo','Party Wear Combo','Gym Combo','Streetwear Combo','Office Combo']},
+         {label:'👗 Women Combos',items:['Casual Outfit Combo','Party Combo','Ethnic Combo','Western Combo','College Wear Combo']},
+         {label:'👫 Unisex Combos',items:['Couple Combo','Best Friend Combo','Matching Outfit Combo']},
+     ],
+     isComboCategory:true},
     {id:'accessories',name:'Accessories',
      photo:'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=120&h=120&fit=crop&q=80',
      subs:['Sunglasses','Watches','Wallets','Bags','Belts','Caps','Chains','Bracelets','Socks','Handbags','Clutches','Earrings','Necklace Sets','Bangles','Hair Accessories','Scrunchies','Unisex Sunglasses','Earbuds','Power Banks','Phone Cases','Backpacks'],
@@ -93,14 +109,42 @@ const CATEGORIES=[
 const GOLD_SUBCATS={Men:['Topwear','Bottomwear','Footwear'],Women:['Topwear','Bottomwear','Footwear']};
 function isPerfumeCategory(cat){return String(cat||'').toLowerCase()==='perfumes';}
 const PERFUME_ML_SIZES=['5ml','10ml','15ml','20ml','25ml','30ml','50ml','75ml','100ml','150ml','200ml','250ml','500ml'];
-const COMBO_SUBS=new Set(['Formal Combo (Shirt+Trouser+Belt+Tie)','Casual Combo (Tee+Baggy Jeans+Locket)','Streetwear Combo (Oversized Tee+Cargo+Chain)','Tracksuit (Full Upper & Lower)','Ethnic Combo (Kurta+Pant+Dupatta)','Sherwani Set (Sherwani+Pant+Dupatta)','Nehru Jacket Combo','Ethnic Set (Kurti+Pant+Dupatta)','Western Combo (Top+Straight Jeans+Belt)','Party Combo (Saree+Blouse+Belt)','Indo-Western (Top+Palazzo+Shrug)','Formal Combo','Casual Combo','Streetwear Combo','Tracksuit','Ethnic Combo','Sherwani Set','Ethnic Set','Western Combo','Party Combo','Indo-Western']);
+const COMBO_SUBS=new Set([
+    // Legacy combos (Men/Women subs within old categories)
+    'Formal Combo (Shirt+Trouser+Belt+Tie)','Casual Combo (Tee+Baggy Jeans+Locket)',
+    'Streetwear Combo (Oversized Tee+Cargo+Chain)','Tracksuit (Full Upper & Lower)',
+    'Ethnic Combo (Kurta+Pant+Dupatta)','Sherwani Set (Sherwani+Pant+Dupatta)','Nehru Jacket Combo',
+    'Ethnic Set (Kurti+Pant+Dupatta)','Western Combo (Top+Straight Jeans+Belt)',
+    'Party Combo (Saree+Blouse+Belt)','Indo-Western (Top+Palazzo+Shrug)',
+    'Formal Combo','Casual Combo','Streetwear Combo','Tracksuit',
+    'Ethnic Combo','Sherwani Set','Ethnic Set','Western Combo','Party Combo','Indo-Western',
+    // NEW: Combos category subs (Men Combos)
+    'Party Wear Combo','Gym Combo','Office Combo',
+    // NEW: Women Combos
+    'Casual Outfit Combo','College Wear Combo',
+    // NEW: Unisex Combos
+    'Couple Combo','Best Friend Combo','Matching Outfit Combo'
+]);
 const SUB_DISPLAY_MAP={'Cargo Jeans':'Cargo Pant','Formal Combo (Shirt+Trouser+Belt+Tie)':'Formal Combo','Casual Combo (Tee+Baggy Jeans+Locket)':'Casual Combo','Streetwear Combo (Oversized Tee+Cargo+Chain)':'Streetwear Combo','Tracksuit (Full Upper & Lower)':'Tracksuit','Ethnic Combo (Kurta+Pant+Dupatta)':'Ethnic Combo','Ethnic Combo (Kurta+Pant Set)':'Ethnic Combo','Sherwani Set (Sherwani+Pant+Dupatta)':'Sherwani Set','Sherwani Set (Sherwani+Pant Set)':'Sherwani Set','Ethnic Set (Kurti+Pant+Dupatta)':'Ethnic Set','Western Combo (Top+Straight Jeans+Belt)':'Western Combo','Party Combo (Saree+Blouse+Belt)':'Party Combo','Indo-Western (Top+Palazzo+Shrug)':'Indo-Western'};
 function getSubDisplayName(sub){return SUB_DISPLAY_MAP[sub]||sub;}
 
+function isComboCategory(cat){return String(cat||'').toLowerCase()==='combos';}
 function getComboSizeGroups(sizeArray=[]){
     const arr=(sizeArray||[]).map(s=>String(s||'').trim()).filter(Boolean);
     const topSet=new Set(['XS','S','M','L','XL','XXL','3XL','4XL','XXXL']);
-    return{topwear:arr.filter(s=>topSet.has(s.toUpperCase())),bottomwear:arr.filter(s=>/^\d+$/.test(s)&&Number(s)>=24&&Number(s)<=42),footwear:arr.filter(s=>/^\d+$/.test(s)&&Number(s)>=4&&Number(s)<=12),watch:arr.filter(s=>s.toLowerCase().includes('watch')||s.toLowerCase()==='free size')};
+    const topwear=arr.filter(s=>topSet.has(s.toUpperCase()));
+    const bottomwear=arr.filter(s=>/^\d+$/.test(s)&&Number(s)>=24&&Number(s)<=42);
+    const footwear=arr.filter(s=>/^\d+$/.test(s)&&Number(s)>=4&&Number(s)<=12);
+    const accessories=arr.filter(s=>s.toLowerCase().includes('free')||s.toLowerCase().includes('accessori'));
+    const watch=arr.filter(s=>s.toLowerCase().includes('watch'));
+    // Provide sensible defaults for combo products
+    return{
+        topwear:topwear.length?topwear:['XS','S','M','L','XL','XXL'],
+        bottomwear:bottomwear.length?bottomwear:['28','30','32','34','36'],
+        footwear:footwear.length?footwear:['6','7','8','9','10'],
+        accessories:accessories.length?accessories:['Free Size'],
+        watch:watch.length?watch:[]
+    };
 }
 function _composeComboSizeLabel(){
     if(!selectedComboParts)return selectedSize;
@@ -108,6 +152,7 @@ function _composeComboSizeLabel(){
     if(selectedComboParts.topwear)parts.push(`Top:${selectedComboParts.topwear}`);
     if(selectedComboParts.bottomwear)parts.push(`Bottom:${selectedComboParts.bottomwear}`);
     if(selectedComboParts.footwear)parts.push(`Footwear:${selectedComboParts.footwear}`);
+    if(selectedComboParts.accessories)parts.push(`Accessories:${selectedComboParts.accessories}`);
     if(selectedComboParts.watch)parts.push(`Watch:${selectedComboParts.watch}`);
     selectedSize=parts.join(' | ')||selectedSize;return selectedSize;
 }
@@ -745,7 +790,7 @@ function createProductCard(p,forceGold=false){
         const discPct=hasDiscount?Math.round(((p.oldprice-p.price)/p.oldprice)*100):0;
         const isPerf=isPerfumeCategory(p.category);
         const sizes=isPerf?(p.available_sizes?.length?p.available_sizes:PERFUME_ML_SIZES):(p.available_sizes||getDefaultSizes(p.sub||p.category));
-        const isCombo=COMBO_SUBS.has(p.sub||'');const isGold=p.is_gold||forceGold;
+        const isCombo=COMBO_SUBS.has(p.sub||'')||isComboCategory(p.category||'');const isGold=p.is_gold||forceGold;
         const sizeLabel=isPerf?`Vol: ${sizes.slice(0,3).join(' · ')}${sizes.length>3?' +more':''}`:`Sizes: ${sizes.slice(0,3).join(' · ')}${sizes.length>3?' +more':''}`;
         let topLeftBadge='';
         if(isGold){topLeftBadge=`<div class="absolute top-2 left-2 z-20 text-[10px] font-black px-2.5 py-1 rounded-full shadow-md" style="background:linear-gradient(135deg,#C9A84C,#F5E6C0);color:#3d2c00;border:1px solid rgba(201,168,76,0.5);">⭐ GOLD</div>`;}
@@ -965,7 +1010,7 @@ async function openProductPage(id, isGoldProduct = false) {
     viewingProductId = p.id; addToRecentlyViewed(id);
     const isPerf = isPerfumeCategory(p.category);
     const sizeArray = isPerf ? (p.available_sizes?.length ? p.available_sizes : PERFUME_ML_SIZES) : (p.available_sizes?.length ? p.available_sizes : getDefaultSizes(p.sub || p.category));
-    const isCombo = COMBO_SUBS.has(p.sub || ''); selectedComboParts = null; selectedSize = sizeArray[1] || sizeArray[0];
+    const isCombo = COMBO_SUBS.has(p.sub || '') || isComboCategory(p.category || ''); selectedComboParts = null; selectedSize = sizeArray[1] || sizeArray[0];
 
     if (isCombo) {
         const groups = getComboSizeGroups(sizeArray); selectedComboParts = {};
@@ -1042,10 +1087,19 @@ async function openProductPage(id, isGoldProduct = false) {
             </div>` : 
             `${isCombo ? (() => {
                 const groups = getComboSizeGroups(sizeArray);
-                const groupOrder = [['topwear', 'Topwear'], ['bottomwear', 'Bottomwear'], ['footwear', 'Footwear'], ['watch', 'Watch']];
-                return groupOrder.filter(([k]) => groups[k]?.length).map(([k, label]) => `
+                const groupOrder = [
+                    ['topwear',    '👕 Topwear Size',    'S, M, L, XL...'],
+                    ['bottomwear', '👖 Bottomwear Size',  '28, 30, 32...'],
+                    ['footwear',   '👟 Footwear Size',    '6, 7, 8, 9...'],
+                    ['accessories','🕶️ Accessories',      'Free Size'],
+                    ['watch',      '⌚ Watch',            'Free Size'],
+                ];
+                return groupOrder.filter(([k]) => groups[k]?.length).map(([k, label, hint]) => `
                 <div class="mb-4">
-                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">${label}</div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="text-[11px] font-black text-gray-700 uppercase tracking-widest">${label}</div>
+                        <div class="text-[9px] text-gray-400 font-semibold">${hint}</div>
+                    </div>
                     <div class="flex flex-wrap gap-2" id="combo-size-${k}">
                         ${groups[k].map(s => `<button onclick="selectComboPartSize('${k}','${s}')" class="size-btn ${(selectedComboParts && selectedComboParts[k] === s) ? 'selected' : ''} px-4 py-2 min-w-[3.5rem] rounded-xl border border-gray-200 font-bold text-sm transition-all">${s}</button>`).join('')}
                     </div>
