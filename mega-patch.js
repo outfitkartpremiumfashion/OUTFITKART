@@ -1,7 +1,6 @@
 'use strict';
 /* ================================================================
-   OUTFITKART MEGA-PATCH — COMPLETE MERGED VERSION
-   Includes: v5.1 + v6 + All Fixes
+   OUTFITKART MEGA-PATCH — COMPLETE MERGED VERSION (Giveaway Removed)
    
    FIXES INCLUDED:
    ✅ 1. Profile back button z-index (visible above header)
@@ -13,11 +12,11 @@
    ✅ 7. Ads Section (Supabase connected)
    ✅ 8. User Level Badge
    ✅ 9. Auto-login after signup
-   ✅ 10. Footer ivory background
+   ✅ 10. Footer with Privacy/Policy pages
    ✅ 11. Home sections (trust strip, categories, unbeatable)
    ✅ 12. Cancel/Exchange with wallet refund
-   ✅ 13. Referral channels UI
-   ✅ 14. Footer + Policy pages
+   ✅ 13. Profile Social Card (after stats)
+   ✅ 14. Instagram link updated
    ✅ 15. Profile stats fix
    ✅ 16. Voice welcome (Indian girl voice)
    ================================================================ */
@@ -83,6 +82,63 @@
     }
     .profile-menu-item { transition: background 0.15s; }
     .profile-menu-item:active { background: #f3f4f6 !important; }
+
+    /* ── Profile Social Card (after stats) ── */
+    #ok-profile-social-card {
+      margin: 0 16px 16px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 40%, #16213e 100%);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #ok-profile-social-card .psc-header {
+      padding: 14px 16px 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    #ok-profile-social-card .psc-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg,#e11d48,#7c3aed);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      color: white;
+      flex-shrink: 0;
+    }
+    #ok-profile-social-card .psc-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: white;
+    }
+    #ok-profile-social-card .psc-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 1px;
+    }
+    #ok-profile-social-card .psc-links {
+      display: flex;
+      gap: 8px;
+      padding: 12px 12px 16px;
+    }
+    #ok-profile-social-card .psc-link {
+      flex: 1;
+      padding: 9px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      color: white;
+      text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    #ok-profile-social-card .psc-link:active { transform: scale(0.96); }
+    #ok-profile-social-card .psc-link-ig  { background: linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045); }
+    #ok-profile-social-card .psc-link-yt  { background: linear-gradient(135deg,#ff0000,#cc0000); }
+    #ok-profile-social-card .psc-link-tg  { background: linear-gradient(135deg,#0088cc,#00b0f4); }
+    #ok-profile-social-card .psc-link-wa  { background: linear-gradient(135deg,#25D366,#128C7E); }
 
     /* ── FIX 4: PDP sizing ── */
     #pdp-container h1 {
@@ -153,7 +209,7 @@
       pointer-events: none; display: flex; align-items: center; gap: 5px; z-index: 5;
     }
 
-    /* ── Footer ── */
+    /* ── Footer with Policy Links ── */
     #ok-site-footer {
       background: #FDFCFA !important;
       border-top: 1px solid #E5E2DC !important;
@@ -165,9 +221,20 @@
       -webkit-text-fill-color: transparent !important;
       background-clip: text !important;
     }
-    #ok-site-footer .footer-links a { color: #6B6A68 !important; }
-    #ok-site-footer .footer-links a:hover { color: #1C1C1E !important; }
+    #ok-site-footer .footer-links a { color: #6B6A68 !important; text-decoration: none; }
+    #ok-site-footer .footer-links a:hover { color: #1C1C1E !important; text-decoration: underline; }
     #ok-site-footer .footer-copy { color: #A09D98 !important; }
+
+    /* ── Policy Page Styles ── */
+    .ok-policy-section { max-width:700px;margin:0 auto;padding:16px; }
+    .ok-policy-section h2 { font-size:1.3rem;font-weight:900;color:#111827;margin:24px 0 8px; }
+    .ok-policy-section h3 { font-size:1rem;font-weight:800;color:#374151;margin:16px 0 6px; }
+    .ok-policy-section p { font-size:13px;color:#4b5563;line-height:1.7;margin:6px 0; }
+    .ok-policy-section ul,ol { padding-left:18px;margin:6px 0; }
+    .ok-policy-section li { font-size:13px;color:#4b5563;line-height:1.7;margin:4px 0; }
+    .ok-policy-section .highlight-box { background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px;margin:12px 0; }
+    .ok-policy-section .warning-box { background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:14px;margin:12px 0; }
+    .ok-policy-section .info-box { background:#eff6ff;border:1.5px solid #93c5fd;border-radius:12px;padding:14px;margin:12px 0; }
 
     /* ── Search Overlay ── */
     #ok-search-overlay {
@@ -303,9 +370,6 @@
     .ok-hscroll { display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:12px;padding-bottom:8px; }
     .ok-hscroll::-webkit-scrollbar { display:none; }
 
-    /* ── Referral channels ── */
-    #ok-ref-channel-box { margin:16px;background:linear-gradient(135deg,#0d0821,#1a0e00);border-radius:18px;padding:16px; }
-
     /* ── PWA popup ── */
     #ok-pwa-overlay { position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px); }
 
@@ -339,20 +403,6 @@
       border-radius: 14px; padding: 14px; margin-bottom: 10px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
-
-    /* ── Policy pages ── */
-    .ok-policy-section { max-width:700px;margin:0 auto;padding:16px; }
-    .ok-policy-section h2 { font-size:1.3rem;font-weight:900;color:#111827;margin:24px 0 8px; }
-    .ok-policy-section h3 { font-size:1rem;font-weight:800;color:#374151;margin:16px 0 6px; }
-    .ok-policy-section p { font-size:13px;color:#4b5563;line-height:1.7;margin:6px 0; }
-    .ok-policy-section ul,ol { padding-left:18px;margin:6px 0; }
-    .ok-policy-section li { font-size:13px;color:#4b5563;line-height:1.7;margin:4px 0; }
-    .ok-policy-section .highlight-box { background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px;margin:12px 0; }
-    .ok-policy-section .warning-box { background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:14px;margin:12px 0; }
-    .ok-policy-section .info-box { background:#eff6ff;border:1.5px solid #93c5fd;border-radius:12px;padding:14px;margin:12px 0; }
-
-    /* ── Supplier ID row ── */
-    .supplier-id-row.saved { transition:all 0.3s ease; }
 
     /* ── Admin Ads tab ── */
     #admin-tab-ads .ad-card-admin {
@@ -417,6 +467,10 @@ window.openProfilePage = function(pageName) {
     referrals:  () => _loadProfileReferrals(),
     influencer: () => _loadProfileInfluencer(),
     info:       () => _loadProfileInfo(),
+    about:      () => _renderPolicyPage('about'),
+    terms:      () => _renderPolicyPage('terms'),
+    privacy:    () => _renderPolicyPage('privacy'),
+    'exchange-policy': () => _renderPolicyPage('exchange'),
   };
   if (loaders[pageName]) loaders[pageName]();
   window.scrollTo(0, 0);
@@ -425,6 +479,69 @@ window.openProfilePage = function(pageName) {
 window.closeProfilePage = function() {
   document.querySelectorAll('.profile-page').forEach(p => p.classList.add('hidden'));
 };
+
+function _renderPolicyPage(type) {
+  const container = document.getElementById('profile-page-policy');
+  if (!container) return;
+  const content = _getPolicyContent(type);
+  container.innerHTML = `
+    <div class="profile-page-header">
+      <button class="back-btn" onclick="closeProfilePage()"><i class="fas fa-arrow-left"></i></button>
+      <h2>${content.title}</h2>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="profile-page-body ok-policy-section">${content.html}</div>
+  `;
+}
+
+function _getPolicyContent(type) {
+  const pages = {
+    about: {
+      title: 'About OutfitKart',
+      html: `<h2>About OutfitKart</h2>
+        <p>OutfitKart is India's fastest growing premium fashion destination. We bring you the latest trends in men's and women's fashion at unbeatable prices.</p>
+        <div class="highlight-box"><i class="fas fa-truck mr-2"></i> <strong>Free Shipping</strong> on orders above ₹500</div>
+        <div class="info-box"><i class="fas fa-exchange-alt mr-2"></i> <strong>Easy Exchange</strong> within 7 days of delivery</div>
+        <h3>Our Mission</h3>
+        <p>To make premium fashion accessible to every Indian with hassle-free shopping experience.</p>
+        <h3>Contact Us</h3>
+        <p>Email: outfitkartpremiumfashion@gmail.com<br>WhatsApp: +91 8982296773</p>`
+    },
+    terms: {
+      title: 'Terms & Conditions',
+      html: `<h2>Terms & Conditions</h2>
+        <p>Welcome to OutfitKart. By using our website, you agree to these terms.</p>
+        <h3>1. Orders & Payments</h3>
+        <p>All orders are subject to availability. We accept COD, UPI, Card, and Wallet payments.</p>
+        <h3>2. Shipping & Delivery</h3>
+        <p>Orders are processed within 24-48 hours. Delivery takes 3-7 business days.</p>
+        <h3>3. Cancellation & Returns</h3>
+        <p>Orders can be cancelled before shipping. Exchange available within 7 days for delivered orders.</p>
+        <div class="warning-box"><i class="fas fa-exclamation-triangle mr-2"></i> Exchange is only applicable for size/color issues, not for usage damage.</div>`
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      html: `<h2>Privacy Policy</h2>
+        <p>Your privacy matters to us. We collect only necessary information to process your orders.</p>
+        <h3>Information We Collect</h3>
+        <ul><li>Name, mobile number, email, address</li><li>Order history</li><li>Device information (for app functionality)</li></ul>
+        <h3>How We Use Your Data</h3>
+        <ul><li>Process and deliver orders</li><li>Send order updates and promotions (with consent)</li><li>Improve our services</li></ul>
+        <div class="info-box"><i class="fas fa-shield-alt mr-2"></i> We never share your personal data with third parties for marketing.</div>`
+    },
+    exchange: {
+      title: 'Exchange Policy',
+      html: `<h2>Exchange Policy</h2>
+        <div class="highlight-box"><i class="fas fa-clock mr-2"></i> Exchange Window: <strong>7 days from delivery</strong></div>
+        <h3>Eligibility</h3>
+        <ul><li>Product must be unused, unwashed, with original tags</li><li>Size/color issues only (not for damage due to usage)</li><li>Original packaging required</li></ul>
+        <h3>How to Exchange</h3>
+        <ol><li>Go to Orders → Click "Exchange" on delivered order</li><li>Select new items of equal or higher value</li><li>Pay difference if any (old value applied)</li><li>We ship new items after pickup of old product</li></ol>
+        <div class="warning-box"><i class="fas fa-info-circle mr-2"></i> Exchange value = original order total. Shipping charges may apply.</div>`
+    }
+  };
+  return pages[type] || pages.about;
+}
 
 function _loadProfileOrders() {
   const fns = ['loadUserOrders', 'renderUserOrders', 'renderOrdersList', 'fetchUserOrders'];
@@ -444,7 +561,6 @@ function _loadProfileReferrals() {
   for (const fn of fns) { if (typeof window[fn] === 'function') { window[fn](); return; } }
 }
 function _loadProfileInfluencer() {
-  // Use the patched version
   if (typeof window.loadInfluencerRequests === 'function') window.loadInfluencerRequests();
 }
 function _loadProfileInfo() {
@@ -1083,6 +1199,46 @@ function _showProfileDashboard(userData) {
   if (menuWalletBadge && walletBal > 0) { menuWalletBadge.textContent = '₹' + walletBal; menuWalletBadge.classList.remove('hidden'); }
   const orderCount = parseInt(document.getElementById('stat-orders-count')?.textContent) || 0;
   setTimeout(() => _injectLevelBadge(orderCount), 300);
+  // Inject Profile Social Card after stats
+  setTimeout(() => _injectProfileSocialCard(), 400);
+}
+
+// PROFILE SOCIAL CARD (after stats)
+function _injectProfileSocialCard() {
+  if (document.getElementById('ok-profile-social-card')) return;
+  const profileHome = document.getElementById('profile-home');
+  if (!profileHome) return;
+
+  const statsSection = profileHome.querySelector('.grid.grid-cols-2.gap-4.mb-4');
+  if (!statsSection) return;
+
+  const card = document.createElement('div');
+  card.id = 'ok-profile-social-card';
+  card.innerHTML = `
+    <div class="psc-header">
+      <div class="psc-icon"><i class="fas fa-share-alt"></i></div>
+      <div>
+        <div class="psc-title">Follow & Subscribe 🔔</div>
+        <div class="psc-sub">Hamare saath connect raho — offers & deals pao!</div>
+      </div>
+    </div>
+    <div class="psc-links">
+      <a href="https://www.instagram.com/outfitkart_official?igsh=MTdlaG1jem56YWRpeQ==" target="_blank" rel="noopener" class="psc-link psc-link-ig">
+        <i class="fab fa-instagram"></i> Instagram
+      </a>
+      <a href="https://youtube.com/@outfitkart-official?si=SJOr76KDH_H99JDt" target="_blank" rel="noopener" class="psc-link psc-link-yt">
+        <i class="fab fa-youtube"></i> YouTube
+      </a>
+      <a href="https://t.me/outfitkart" target="_blank" rel="noopener" class="psc-link psc-link-tg">
+        <i class="fab fa-telegram"></i> Telegram
+      </a>
+      <a href="https://whatsapp.com/channel/0029VbCiSs06GcGJpToxKd3z" target="_blank" rel="noopener" class="psc-link psc-link-wa">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+    </div>
+  `;
+
+  statsSection.insertAdjacentElement('afterend', card);
 }
 
 function _patchAuthFunctions() {
@@ -1312,7 +1468,22 @@ function _renderFooter() {
   const footer = document.createElement('div');
   footer.id = 'ok-site-footer';
   footer.style.cssText = 'padding:28px 20px 120px;text-align:center;';
-  footer.innerHTML = `<span class="footer-brand" style="font-size:1.1rem;font-weight:900;display:block;margin-bottom:8px;">OutfitKart</span><p style="font-size:11px;color:#9ca3af;margin:0 0 8px;">Premium Fashion at Best Prices</p><div class="footer-links" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:12px 0;"><a href="#" onclick="openProfilePage('about');return false;">About Us</a><a href="#" onclick="openProfilePage('terms');return false;">Terms</a><a href="#" onclick="openProfilePage('privacy');return false;">Privacy</a><a href="#" onclick="openProfilePage('exchange-policy');return false;">Exchange Policy</a><a href="#" onclick="openWhatsAppSupport&&openWhatsAppSupport();return false;">Support</a></div><div style="display:flex;justify-content:center;gap:16px;margin:12px 0;"><a href="https://www.instagram.com/outfitkart_ecommers" target="_blank" style="color:#e1306c;font-size:20px;"><i class="fab fa-instagram"></i></a><a href="https://t.me/outfitkart" target="_blank" style="color:#0088cc;font-size:20px;"><i class="fab fa-telegram"></i></a><a href="https://youtube.com/@outfitkart-official?si=SJOr76KDH_H99JDt" target="_blank" style="color:#ff0000;font-size:20px;"><i class="fab fa-youtube"></i></a></div><div class="footer-copy" style="font-size:10px;margin-top:10px;">© 2026 OutfitKart. All rights reserved. Made with ❤️ in India 🇮🇳</div>`;
+  footer.innerHTML = `
+    <span class="footer-brand" style="font-size:1.1rem;font-weight:900;display:block;margin-bottom:8px;">OutfitKart</span>
+    <p style="font-size:11px;color:#9ca3af;margin:0 0 8px;">Premium Fashion at Best Prices</p>
+    <div class="footer-links" style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:12px 0;">
+      <a href="#" onclick="openProfilePage('about');return false;">About Us</a>
+      <a href="#" onclick="openProfilePage('terms');return false;">Terms</a>
+      <a href="#" onclick="openProfilePage('privacy');return false;">Privacy</a>
+      <a href="#" onclick="openProfilePage('exchange-policy');return false;">Exchange Policy</a>
+      <a href="#" onclick="openWhatsAppSupport&&openWhatsAppSupport();return false;">Support</a>
+    </div>
+    <div style="display:flex;justify-content:center;gap:16px;margin:12px 0;">
+      <a href="https://www.instagram.com/outfitkart_official?igsh=MTdlaG1jem56YWRpeQ==" target="_blank" style="color:#e1306c;font-size:20px;"><i class="fab fa-instagram"></i></a>
+      <a href="https://t.me/outfitkart" target="_blank" style="color:#0088cc;font-size:20px;"><i class="fab fa-telegram"></i></a>
+      <a href="https://youtube.com/@outfitkart-official?si=SJOr76KDH_H99JDt" target="_blank" style="color:#ff0000;font-size:20px;"><i class="fab fa-youtube"></i></a>
+    </div>
+    <div class="footer-copy" style="font-size:10px;margin-top:10px;">© 2026 OutfitKart. All rights reserved. Made with ❤️ in India 🇮🇳</div>`;
   main.appendChild(footer);
 }
 
@@ -1449,23 +1620,7 @@ window._refreshProfileStats = _refreshProfileStats;
 
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION 13 — REFERRAL CHANNELS IN PROFILE
-   ═══════════════════════════════════════════════════════════════ */
-function _injectChannelsInProfile() {
-  const profileHome = document.getElementById('profile-home');
-  if (!profileHome || document.getElementById('ok-profile-channels')) return;
-  const channelDiv = document.createElement('div');
-  channelDiv.id = 'ok-profile-channels';
-  channelDiv.style.cssText = 'margin: 0 16px 16px;';
-  channelDiv.innerHTML = `<div id="ok-ref-channel-box"><div style="font-size:10px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin-bottom:8px;">🔔 Exclusive Deals & Codes</div><p style="font-size:12px;color:rgba(255,255,255,0.7);margin:0 0 12px;line-height:1.5;">Hamare channels join karo — flash sales, promo codes & early access pao!</p><div style="display:flex;gap:10px;"><a href="https://t.me/outfitkart" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;text-decoration:none;font-weight:800;font-size:11px;color:white;background:linear-gradient(135deg,#0088cc,#00b0f4);"><i class="fab fa-telegram"></i> Telegram</a><a href="https://whatsapp.com/channel/0029VbCiSs06GcGJpToxKd3z" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;text-decoration:none;font-weight:800;font-size:11px;color:white;background:linear-gradient(135deg,#25D366,#128C7E);"><i class="fab fa-whatsapp"></i> WhatsApp</a></div><div style="display:flex;gap:10px;margin-top:10px;"><a href="https://www.instagram.com/outfitkart_ecommers?igsh=MWUwNTNzczI4YjZsdw==" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;text-decoration:none;font-weight:800;font-size:11px;color:white;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);"><i class="fab fa-instagram"></i> Instagram</a><a href="https://youtube.com/@outfitkart-official?si=SJOr76KDH_H99JDt" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:10px;text-decoration:none;font-weight:800;font-size:11px;color:white;background:linear-gradient(135deg,#ff0000,#cc0000);"><i class="fab fa-youtube"></i> YouTube</a></div></div></div>`;
-  const lastSection = profileHome.querySelectorAll('.bg-white.rounded-2xl.shadow-sm.border.overflow-hidden.mb-4')[2];
-  if (lastSection) lastSection.insertAdjacentElement('beforebegin', channelDiv);
-  else profileHome.appendChild(channelDiv);
-}
-
-
-/* ═══════════════════════════════════════════════════════════════
-   SECTION 14 — VOICE WELCOME
+   SECTION 13 — VOICE WELCOME
    ═══════════════════════════════════════════════════════════════ */
 (function _setupVoiceWelcome() {
   if (window._voiceWelcomeReady) return;
@@ -1520,7 +1675,7 @@ function _injectChannelsInProfile() {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION 15 — ADMIN ADS TAB INJECTION
+   SECTION 14 — ADMIN ADS TAB INJECTION
    ═══════════════════════════════════════════════════════════════ */
 function _injectAdminAdsTab() {
   if (!document.getElementById('btn-admin-ads')) {
@@ -1588,7 +1743,7 @@ function _injectAdminAdsTab() {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION 16 — MUTATION OBSERVER & NAVIGATE PATCHES
+   SECTION 15 — MUTATION OBSERVER & NAVIGATE PATCHES
    ═══════════════════════════════════════════════════════════════ */
 function _initObservers() {
   const obs = new MutationObserver(mutations => {
@@ -1596,7 +1751,8 @@ function _initObservers() {
       if (m.type !== 'attributes' || m.attributeName !== 'class') return;
       const el = m.target;
       if (el.id === 'user-dashboard' && !el.classList.contains('hidden')) {
-        setTimeout(() => { _injectChannelsInProfile(); _injectLevelBadge(parseInt(document.getElementById('stat-orders-count')?.textContent)||0); }, 200);
+        setTimeout(() => _injectLevelBadge(parseInt(document.getElementById('stat-orders-count')?.textContent)||0), 200);
+        setTimeout(() => _injectProfileSocialCard(), 300);
       }
       if (el.id === 'view-home' && !el.classList.contains('hidden')) {
         setTimeout(() => { _renderHomePromoBanner(); _renderTrustStrip(); _renderShopByCategorySection(); }, 200);
@@ -1627,7 +1783,7 @@ function _patchNavigateForAll() {
     if (view === 'profile') {
       setTimeout(() => { const u = _getStoredUser(); if (u) _showProfileDashboard(u); }, 200);
       setTimeout(() => _injectLevelBadge(parseInt(document.getElementById('stat-orders-count')?.textContent)||0), 400);
-      setTimeout(_injectChannelsInProfile, 300);
+      setTimeout(() => _injectProfileSocialCard(), 500);
       setTimeout(_refreshProfileStats, 500);
       setTimeout(_refreshProfileStats, 1500);
     }
@@ -1640,7 +1796,7 @@ function _patchNavigateForAll() {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   MASTER INIT
+   MASTER INIT — EXIT INTENT PROMO REMOVED, GIVEAWAY REMOVED
    ═══════════════════════════════════════════════════════════════ */
 function _initMergedPatch() {
   // 1. Profile z-index fix
@@ -1709,7 +1865,7 @@ function _initMergedPatch() {
     };
   }
 
-  console.log('%c🛍️ OutfitKart MegaPatch MERGED v5+v6+Fixes ✅ ALL SYSTEMS GO', 'background:#e11d48;color:white;font-weight:900;font-size:12px;padding:4px 12px;border-radius:6px;');
+  console.log('%c🛍️ OutfitKart MegaPatch MERGED v5+v6+Fixes ✅ (Giveaway & Exit Intent Removed)', 'background:#e11d48;color:white;font-weight:900;font-size:12px;padding:4px 12px;border-radius:6px;');
 }
 
 /* Boot */
