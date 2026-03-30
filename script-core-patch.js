@@ -55,6 +55,12 @@
         img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=533&fit=crop&q=80',
         action: "openCategoryPage('Combos')",
       },
+    {
+    name: 'Perfumes ✨',
+    img: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=533&fit=crop&q=80',
+    action: "openCategoryPage('Perfumes')"
+}, 
+
     ];
 
     const section = document.createElement('div');
