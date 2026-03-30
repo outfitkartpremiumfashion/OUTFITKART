@@ -7,7 +7,7 @@ const IMGBB_KEY         = '3949e4873d8510691ee63026d22eeb75';
 const SUPPORT_WA        = '918982296773';
 const SUPPORT_EMAIL     = 'outfitkartpremiumfashion@gmail.com';
 const SAFE_DELIVERY_URL = 'https://ltl.sh/y_nZrAV3';
-const INSTAGRAM_URL     = 'https://www.instagram.com/outfitkart_ecommers?igsh=MWUwNTNzczI4YjZsdw==';
+const INSTAGRAM_URL     = 'https://www.instagram.com/outfitkart_official?igsh=MTdlaG1jem56YWRpeQ==';
 const YOUTUBE_URL       = 'https://youtube.com/@outfitkart-official?si=SJOr76KDH_H99JDt';
 const TELEGRAM_CHANNEL  = 'https://t.me/outfitkart';
 const WHATSAPP_CHANNEL  = 'https://whatsapp.com/channel/0029VbCiSs06GcGJpToxKd3z';
@@ -62,8 +62,7 @@ const CATEGORIES=[
          {label:'👕 Topwear',items:['T-Shirts','Casual Shirts','Formal Shirts','Oversized Tees','Oversized Shirts','Hoodies','Denim Jacket']},
          {label:'👖 Bottomwear',items:['Baggy Jeans','Straight Fit Jeans','Slim Fit Jeans','Cotton Trousers','Joggers','Cargo Pants','Formal Pant','Trousers']},
          {label:'👟 Footwear',items:['Sneakers','Formal Shoes','Sports Shoes','Sandals','Slippers']},
-         {label:'🎁 Full Combos',items:['Formal Combo (Shirt+Trouser+Belt+Tie)','Casual Combo (Tee+Baggy Jeans+Locket)','Streetwear Combo (Oversized Tee+Cargo+Chain)','Tracksuit (Full Upper & Lower)','Ethnic Combo (Kurta+Pant+Dupatta)','Sherwani Set (Sherwani+Pant+Dupatta)','Nehru Jacket Combo']},
-     ]},
+         ]}, 
     {id:'women',name:'Women',
      photo:'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=120&h=120&fit=crop&q=80',
      subs:['Sarees','Kurtis','Lehengas','Tops','Straight Fit Jeans','Trousers','Baggy Jeans','Cargo Jeans','Skinny Fit Jeans','Slim Fit Jeans','Palazzo','Tops & Tunics','Dresses','Skirts','Heels','Flats','Sandals','Sneakers','Wedges','Ethnic Set (Kurti+Pant+Dupatta)','Western Combo (Top+Straight Jeans+Belt)','Party Combo (Saree+Blouse+Belt)','Indo-Western (Top+Palazzo+Shrug)'],
@@ -72,8 +71,7 @@ const CATEGORIES=[
          {label:'👖 Bottomwear',items:['Straight Fit Jeans','trousers','Baggy Jeans','Cargo Jeans','Skinny Fit Jeans','Slim Fit Jeans']},
          {label:'👗 Western',items:['Tops','Palazzo','Tops & Tunics','Dresses','Skirts']},
          {label:'👠 Footwear',items:['Heels','Flats','Sandals','Sneakers','Wedges']},
-         {label:'🎁 Full Combos',items:['Ethnic Set (Kurti+Pant+Dupatta)','Western Combo (Top+Straight Jeans+Belt)','Party Combo (Saree+Blouse+Belt)','Indo-Western (Top+Palazzo+Shrug)']},
-     ]},
+         ]}, 
     {id:'Perfumes',name:'Perfumes',
      photo:'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=120&h=120&fit=crop&q=80',
      subs:["Men's Perfume","Women's Perfume","Unisex Perfume","Luxury Perfume","Budget Perfume","Attar / Ittar","Body Mist","Deodorant Spray","Gift Set"],
