@@ -285,7 +285,7 @@
   document.head.appendChild(style);
 
   /* ── 2. Constants ── */
-  const INSTAGRAM_URL = 'https://www.instagram.com/outfitkart_ecommers?igsh=MWUwNTNzczI4YjZsdw==';
+  const INSTAGRAM_URL = 'https://www.instagram.com/outfitkart_official?igsh=MTdlaG1jem56YWRpeQ==';
   const YOUTUBE_URL   = 'https://youtube.com/@outfitkart-official?si=SJOr76KDH_H99JDt';
   const GIVEAWAY_TARGET = 150;
 
@@ -297,7 +297,7 @@
     bar.id = 'ok-giveaway-bar';
     bar.innerHTML = `
       <div class="gw-marquee">
-        <span>🎁✨ GIVEAWAY ALERT! Instagram par 150 followers hone par 2 lucky winners ko special prize milega! 🎉 — Follow @outfitkart_ecommers &amp; Subscribe @outfitkart-official on YouTube — 🎁✨ GIVEAWAY ALERT! Instagram par 150 followers hone par 2 lucky winners ko special prize milega!</span>
+        <span>🎁✨ GIVEAWAY ALERT! Instagram par 150 followers hone par 2 lucky winners ko special prize milega! 🎉 — Follow @outfitkart_official &amp; Subscribe @outfitkart-official on YouTube — 🎁✨ GIVEAWAY ALERT! Instagram par 150 followers hone par 2 lucky winners ko special prize milega!</span>
       </div>
       <span class="gw-close" id="ok-gw-bar-close" title="Close">✕</span>
     `;
@@ -334,7 +334,7 @@
         </div>
         <div class="gw-step">
           <div class="gw-step-num">1</div>
-          <div class="gw-step-text"><strong>Instagram Follow karo</strong> — @outfitkart_ecommers ko follow karo</div>
+          <div class="gw-step-text"><strong>Instagram Follow karo</strong> — @outfitkart_official ko follow karo</div>
         </div>
         <div class="gw-step">
           <div class="gw-step-num">2</div>
@@ -412,10 +412,14 @@
       </div>
     `;
 
-    // Insert at top of profile home (after stats/level cards, before menus)
-    const firstMenu = profileHome.querySelector('.bg-white.rounded-2xl');
-    if (firstMenu) firstMenu.insertAdjacentElement('beforebegin', card);
-    else profileHome.appendChild(card);
+    // Insert after stats/level badge — profile stats ke baad, menus se pehle
+    const levelBadge = profileHome.querySelector('#ok-user-level-badge');
+    if (levelBadge) levelBadge.insertAdjacentElement('afterend', card);
+    else {
+      const firstMenu = profileHome.querySelector('.bg-white.rounded-2xl');
+      if (firstMenu) firstMenu.insertAdjacentElement('beforebegin', card);
+      else profileHome.appendChild(card);
+    }
   }
 
   /* ── 6. Patch navigate to inject on profile open ── */
@@ -445,7 +449,7 @@
   function _initGiveaway() {
     _injectGiveawayBar();
     _patchNavigateForGiveaway();
-    _autoShowPopupOnce();
+    // _autoShowPopupOnce(); — AUTO POPUP DISABLED: sirf bar click se open hoga
     // If already on profile page
     const profileHome = document.getElementById('profile-home');
     if (profileHome && !profileHome.classList.contains('hidden')) {
