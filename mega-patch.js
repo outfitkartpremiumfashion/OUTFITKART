@@ -689,6 +689,7 @@ function _renderSearchResults(hits, query) {
 }
 
 let _searchDebounce = null;
+let _autoNavDebounce = null;
 function _okSearchHandler(e) {
   const q = (e.target?.value || '').trim();
   const panel = document.getElementById('ok-search-results-panel');
@@ -698,7 +699,10 @@ function _okSearchHandler(e) {
     return;
   }
   clearTimeout(_searchDebounce);
+  clearTimeout(_autoNavDebounce);
   panel.innerHTML = `<div style="text-align:center;padding:24px;color:#9ca3af;"><i class="fas fa-spinner fa-spin" style="color:#e11d48;font-size:1.5rem;display:block;margin-bottom:8px;"></i>Searching...</div>`;
+
+  // Overlay mein bhi results dikhao
   _searchDebounce = setTimeout(() => {
     const products = _getAllProducts();
     if (products.length > 0) {
@@ -707,6 +711,11 @@ function _okSearchHandler(e) {
       _waitForProducts(() => _renderSearchResults(_searchProductsMain(q), q));
     }
   }, 280);
+
+  // 500ms baad automatically full page search pe navigate karo (bina Enter dabaye)
+  _autoNavDebounce = setTimeout(() => {
+    _okSearchFullPage(q);
+  }, 500);
 }
 
 function _okSearchFullPage(q) {
