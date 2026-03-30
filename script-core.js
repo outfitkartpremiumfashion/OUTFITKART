@@ -322,29 +322,6 @@ window._goPromoSlide=idx=>{_promoIdx=idx;_renderPromoContent(idx);clearInterval(
 function _nextPromoSlide(){_promoIdx=(_promoIdx+1)%PROMO_ADS.length;_renderPromoContent(_promoIdx);}
 function closePromoAd(){clearInterval(_promoTimer);const card=document.getElementById('ok-promo-card');if(card)card.style.animation='okSlideDown 0.35s cubic-bezier(0.4,0,0.2,1) both';setTimeout(()=>{document.getElementById('ok-promo-overlay')?.remove();},380);sessionStorage.setItem('ok_promo_shown','1');}
 
-/* ============================================================
-   11. HOME — SUBCATEGORY STRIP + AI STRIP
-   ============================================================ */
-const _HOME_STRIPS=[
-    {label:'👔 Men',cat:'Men',items:['T-Shirts','Baggy Jeans','Oversized Tees','Hoodies','Sneakers','Cargo Pants']},
-    {label:'👗 Women',cat:'Women',items:['Kurtis','Sarees','Dresses','Straight Fit Jeans','Heels','Palazzo']},
-    {label:'🌸 Perfumes',cat:'Perfumes',items:["Men's Perfume","Women's Perfume",'Unisex Perfume','Attar / Ittar','Body Mist']},
-    {label:'🕶️ Accessories',cat:'Accessories',items:['Sunglasses','Watches','Wallets','Bags','Caps']},
-];
-function _renderHomeSubcatStrip(){
-    const home=document.getElementById('view-home');if(!home)return;
-    document.getElementById('ok-subcat-strip')?.remove();
-    const wrap=document.createElement('div');wrap.id='ok-subcat-strip';wrap.className='bg-white py-4 mt-2';
-    const html=['<div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:12px;"><h3 style="font-weight:900;font-size:1.1rem;color:#111827;">Subcategories</h3></div>'];
-    _HOME_STRIPS.forEach(s=>{
-        html.push(`<div style="padding:0 16px;margin-bottom:12px;"><p style="font-size:10px;font-weight:900;color:#9ca3af;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">${s.label}</p><div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">`);
-        s.items.forEach(sub=>html.push(`<button onclick="openSubcatProducts('${s.cat}','${sub.replace(/'/g,"\\'")}') " style="flex-shrink:0;padding:8px 16px;font-size:11px;font-weight:700;border:2px solid #e5e7eb;border-radius:9999px;background:white;color:#374151;cursor:pointer;white-space:nowrap;" onmouseover="this.style.borderColor='#e11d48';this.style.color='#e11d48'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#374151'">${sub}</button>`));
-        html.push(`<button onclick="openCategoryPage('${s.cat}')" style="flex-shrink:0;padding:8px 16px;font-size:11px;font-weight:700;border:2px solid #fecdd3;border-radius:9999px;background:#fff1f2;color:#e11d48;cursor:pointer;white-space:nowrap;">View All →</button></div></div>`);
-    });
-    wrap.innerHTML=html.join('');
-    const bubbles=home.querySelector('.bg-white.py-4.mt-2');
-    if(bubbles)bubbles.insertAdjacentElement('afterend',wrap);else home.prepend(wrap);
-}
 
 function _renderHomeAIStrip(){
     const home=document.getElementById('view-home');if(!home)return;
