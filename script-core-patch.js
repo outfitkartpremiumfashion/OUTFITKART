@@ -1,588 +1,510 @@
-'use strict';
-/* ============================================================
-   SCRIPT-CORE PATCH — OutfitKart
-   Changes applied:
-   1. openProfilePage() + closeProfilePage() — updated with stat refresh
-   2. checkAuthUI() — stats update (orders count, wallet bal, referral earnings)
-   3. switchProfileTab() — delegates to openProfilePage()
-   4. closeSuccessAndGoToOrders() — calls openProfilePage('orders')
-   5. applyPromoCode() — product-specific validation
-   6. loadProductPromos() — product page pe product-specific promos
-   7. openProductPage() — loads product promos
-   8. adminCreatePromoCode() — admin mein product ID ke saath promo support
-   ============================================================ */
+/* ================================================================
+   OutfitKart — FIX PATCH v1.0
+   ================================================================
+   IS FILE KO mega-patch.js KE BILKUL END MEIN ADD KARO
+   YA EK ALAG <script> TAG MEIN LOAD KARO (mega-patch.js ke baad)
+   ================================================================
 
-/* ============================================================
-   CHANGE 1 & 3: openProfilePage / closeProfilePage / switchProfileTab
-   ============================================================ */
-function openProfilePage(page) {
-    document.querySelectorAll('.profile-page').forEach(p => p.classList.add('hidden'));
-    const target = document.getElementById(`profile-page-${page}`);
-    if (!target) return;
-    target.classList.remove('hidden');
+   FIX 1 — Combos category home section mein add
+   FIX 2 — Influencer history reliable load (user late-ready fix)
+   FIX 3 — Admin panel mein Influencer Requests tab inject
+   ================================================================ */
 
-    // Load data for each page
-    if (page === 'orders') {
-        fetchUserData().then(() => renderOrdersList());
-    }
-    if (page === 'wallet') {
-        fetchUserData().then(() => {
-            const el = document.getElementById('prof-wallet');
-            if (el) el.textContent = `₹${currentUser?.wallet || 0}`;
-            loadWalletTransactions();
-        });
-    }
-    if (page === 'wishlist') renderWishlist();
-    if (page === 'referrals') {
-        loadReferrals();
-    }
-    if (page === 'influencer') loadInfluencerRequests();
-    if (page === 'info') {
-        setTimeout(() => {
-            _fillProfileGender();
-            loadUserReferralCode();
-            const profNameEl = document.getElementById('prof-name');
-            const profEmailEl = document.getElementById('prof-email');
-            const profAddrEl = document.getElementById('prof-address');
-            if (profNameEl && currentUser) profNameEl.value = currentUser.name || '';
-            if (profEmailEl && currentUser) profEmailEl.value = currentUser.email || '';
-            if (profAddrEl && currentUser) profAddrEl.value = currentUser.address || '';
-            // Sync avatar on profile info page
-            const img2 = document.getElementById('prof-avatar-img2');
-            if (img2 && currentUser?.profile_pic) img2.src = currentUser.profile_pic;
-        }, 60);
-    }
-    window.scrollTo(0, 0);
-}
+(function () {
+  'use strict';
 
-function closeProfilePage() {
-    document.querySelectorAll('.profile-page').forEach(p => p.classList.add('hidden'));
-}
+  /* ──────────────────────────────────────────────────────────────
+     FIX 1 — COMBOS CATEGORY HOME SECTION
+     Problem: mega-patch ke _renderShopByCategorySection mein
+              'Combos' entry missing thi, isliye home se click nahi
+              hota tha.
+     Solution: Existing section ko rebuild karo Combos ke saath.
+  ─────────────────────────────────────────────────────────────── */
+  function _fixShopByCategoryWithCombos() {
+    // Pehle purana section hata do (agar render ho chuka hai)
+    const old = document.getElementById('ok-shopco-cats');
+    if (old) old.remove();
 
-// switchProfileTab now delegates to openProfilePage for profile pages
-function switchProfileTab(tabId, btnEl) {
-    // Legacy tab system (hidden divs with .profile-tab class)
-    document.querySelectorAll('.profile-tab').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(`tab-${tabId}`)?.classList.remove('hidden');
-    if (btnEl) btnEl.classList.add('active');
+    const homeView = document.getElementById('view-home');
+    if (!homeView) return;
 
-    // Also open the new profile page system
-    const pageMap = {
-        orders: 'orders',
-        wallet: 'wallet',
-        wishlist: 'wishlist',
-        referrals: 'referrals',
-        influencer: 'influencer',
-        info: 'info',
-        security: 'security',
-        help: 'help',
-    };
-    if (pageMap[tabId]) openProfilePage(pageMap[tabId]);
-}
+    const catData = [
+      {
+        name: 'Men',
+        img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400&h=533&fit=crop&q=80',
+        action: "openCategoryPage('Men')",
+      },
+      {
+        name: 'Women',
+        img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=533&fit=crop&q=80',
+        action: "openCategoryPage('Women')",
+      },
+      {
+        name: 'Footwear',
+        img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=533&fit=crop&q=80',
+        action: "openSubcatProducts('Men','Sneakers')",
+      },
+      {
+        name: 'Accessories',
+        img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=533&fit=crop&q=80',
+        action: "openCategoryPage('Accessories')",
+      },
+      // ✅ FIX 1 — Combos yahan add kiya
+      {
+        name: 'Combos 🎁',
+        img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=533&fit=crop&q=80',
+        action: "openCategoryPage('Combos')",
+      },
+    ];
 
-/* ============================================================
-   CHANGE 2: checkAuthUI — stats update kare
-   ============================================================ */
-async function checkAuthUI() {
-    const authForms = document.getElementById('auth-forms');
-    const userDash = document.getElementById('user-dashboard');
-    const navText = document.getElementById('nav-profile-text');
+    const section = document.createElement('div');
+    section.id = 'ok-shopco-cats';
+    section.innerHTML = `
+      <h2>Shop By Category</h2>
+      <div class="ok-cat-grid">
+        ${catData
+          .map(
+            (c) => `
+          <div class="ok-cat-card" onclick="${c.action}">
+            <img src="${c.img}" alt="${c.name}" loading="lazy"
+                 onerror="this.src='https://placehold.co/300x400/f3f4f6/9ca3af?text=${encodeURIComponent(c.name)}'">
+            <div class="ok-cat-card-label">${c.name}</div>
+          </div>`
+          )
+          .join('')}
+      </div>
+      <button class="ok-viewall-btn" onclick="navigate('shop')">View All Categories</button>`;
 
-    if (currentUser) {
-        authForms?.classList.add('hidden');
-        userDash?.classList.remove('hidden');
-
-        const set = (id, val) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ? el.value = val : el.innerText = val;
-        };
-
-        set('user-greeting', currentUser.name || 'User');
-        set('user-mobile-display', `+91 ${currentUser.mobile}`);
-        set('prof-name', currentUser.name || '');
-        set('prof-email', currentUser.email || '');
-        set('prof-address', currentUser.address || '');
-        set('prof-wallet', `₹${currentUser.wallet || 0}`);
-
-        const avatar = document.getElementById('user-avatar-img');
-        if (avatar) avatar.src = currentUser.profile_pic || `https://placehold.co/100x100/e11d48/ffffff?text=${(currentUser.name || 'U').charAt(0).toUpperCase()}`;
-
-        if (navText) navText.innerText = (currentUser.name || 'User').split(' ')[0];
-
-        updateHeaderWallet(currentUser.wallet || 0);
-        loadUserReferralCode();
-        renderSidebarReferralWidget();
-
-        // ── STATS UPDATE (Change 2) ──
-        await _refreshProfileStats();
-
-        setTimeout(checkNotifStatus, 500);
-        setTimeout(() => {
-            _injectGenderProfile();
-            _fillProfileGender();
-            _injectSidebarLevel();
-            _injectReferralInstructions();
-            _updateUserLevel();
-        }, 300);
+    const trustStrip = document.getElementById('ok-trust-strip');
+    if (trustStrip) {
+      trustStrip.insertAdjacentElement('afterend', section);
     } else {
-        authForms?.classList.remove('hidden');
-        userDash?.classList.add('hidden');
-        if (navText) navText.innerText = i18n('login');
-        updateHeaderWallet(0);
+      homeView.appendChild(section);
     }
-    setTimeout(updateHeaderProfilePhoto, 100);
-}
+    console.log('[FIX-PATCH] ✅ Fix 1: Combos category section rebuild ho gaya');
+  }
 
-// Helper: refresh all 3 stats (orders, wallet, referral earnings)
-async function _refreshProfileStats() {
-    if (!currentUser) return;
-    try {
-        // Orders count
-        const { data: oData } = await dbClient.from('orders').select('id,status').eq('mobile', currentUser.mobile);
-        ordersDb = oData || [];
-        const orderCount = ordersDb.filter(o => o.status !== 'Cancelled').length;
-        const statOrders = document.getElementById('stat-orders-count');
-        if (statOrders) statOrders.textContent = orderCount;
-
-        // Wallet balance (fresh from DB)
-        const { data: uData } = await dbClient.from('users').select('wallet').eq('mobile', currentUser.mobile).maybeSingle();
-        const walBal = uData?.wallet || 0;
-        walletBalance = walBal;
-        currentUser.wallet = walBal;
-        localStorage.setItem('outfitkart_session', JSON.stringify(currentUser));
-        updateHeaderWallet(walBal);
-        const statWallet = document.getElementById('stat-wallet-bal');
-        if (statWallet) statWallet.textContent = `₹${walBal}`;
-        const profWallet = document.getElementById('prof-wallet');
-        if (profWallet) profWallet.textContent = `₹${walBal}`;
-        const menuWalletBadge = document.getElementById('menu-wallet-badge');
-        if (menuWalletBadge) {
-            menuWalletBadge.textContent = `₹${walBal}`;
-            menuWalletBadge.classList.toggle('hidden', walBal === 0);
-        }
-
-        // Referral earnings (pending + confirmed)
-        const { data: refData } = await dbClient.from('referrals').select('commission,status').eq('referrer_mobile', currentUser.mobile);
-        const refs = refData || [];
-        const totalRefEarnings = refs
-            .filter(r => r.status === 'pending' || r.status === 'confirmed')
-            .reduce((s, r) => s + (r.commission || 0), 0);
-        const statRef = document.getElementById('stat-referral-earn');
-        if (statRef) statRef.textContent = `₹${totalRefEarnings}`;
-        const refBadge = document.getElementById('referral-earnings-badge');
-        if (refBadge) refBadge.textContent = `₹${totalRefEarnings}`;
-
-        // Wishlist count badge
-        updateWishlistCount();
-        const wishlistMenuCount = document.getElementById('wishlist-menu-count');
-        if (wishlistMenuCount) {
-            wishlistMenuCount.textContent = wishlist.length;
-            wishlistMenuCount.classList.toggle('hidden', wishlist.length === 0);
-        }
-
-    } catch (e) {
-        console.warn('[Stats] Could not refresh:', e.message);
+  /* ──────────────────────────────────────────────────────────────
+     FIX 2 — INFLUENCER HISTORY RELIABLE LOADER
+     Problem: loadInfluencerRequests silently return kar deta tha
+              agar window.currentUser abhi ready nahi tha.
+     Solution: _getStoredUser se fallback, aur retry mechanism.
+  ─────────────────────────────────────────────────────────────── */
+  window.loadInfluencerRequests = async function () {
+    // currentUser ready nahi toh localStorage se try karo
+    if (!window.currentUser) {
+      const keys = [
+        'outfitkart_user',
+        'ok_user',
+        'user_data',
+        'currentUser',
+        'outfitkart_session',
+      ];
+      for (const k of keys) {
+        try {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.mobile) {
+              window.currentUser = parsed;
+              break;
+            }
+          }
+        } catch (_) {}
+      }
     }
-}
 
-/* ============================================================
-   CHANGE 4: closeSuccessAndGoToOrders
-   ============================================================ */
-function closeSuccessAndGoToOrders() {
-    closeSuccessModal();
-    navigate('profile');
-    setTimeout(() => openProfilePage('orders'), 200);
-}
+    if (!window.currentUser) {
+      console.warn('[FIX-PATCH] loadInfluencerRequests: user not ready, retrying...');
+      setTimeout(window.loadInfluencerRequests, 500);
+      return;
+    }
 
-/* ============================================================
-   CHANGE 5 & 8: applyPromoCode — product-specific validation
-   ============================================================ */
-async function applyPromoCode(codeVal, targetProductId) {
-    const code = (codeVal || document.getElementById('promo-code-input')?.value || '').trim().toUpperCase();
-    if (!code) return showToast('Promo code enter karo');
+    const container = document.getElementById('inf-requests-list');
+    const totalEl = document.getElementById('inf-total-earned');
+    const countEl = document.getElementById('inf-submissions-count');
+    if (!container) return;
+
+    container.innerHTML =
+      '<div class="text-center py-6"><i class="fas fa-spinner fa-spin text-2xl text-purple-500"></i></div>';
 
     try {
-        const { data, error } = await dbClient
-            .from('promo_codes')
-            .select('*')
-            .eq('code', code)
-            .eq('is_active', true)
-            .maybeSingle();
+      const client = window.dbClient || window.supabase;
+      if (!client) throw new Error('DB not ready');
 
-        if (error) throw error;
-        if (!data) { showToast('❌ Invalid promo code!'); return false; }
-        if (new Date(data.expires_at) < new Date()) { showToast('❌ Promo code expired!'); return false; }
-        if (data.used_count >= data.max_uses) { showToast('❌ Promo code limit reached!'); return false; }
+      const { data, error } = await client
+        .from('influencer_requests')
+        .select('*')
+        .eq('mobile', window.currentUser.mobile)
+        .order('id', { ascending: false });
 
-        // ── Product-specific check (Change 5) ──
-        const promoProductId = data.product_id || null;
-        if (promoProductId) {
-            // This promo is product-specific
-            const currentPid = targetProductId || viewingProductId;
-            if (!currentPid) {
-                showToast('❌ Yeh promo code sirf ek specific product ke liye hai');
-                return false;
-            }
-            if (String(promoProductId) !== String(currentPid)) {
-                const promoProduct = products.find(p => String(p.id) === String(promoProductId))
-                    || goldProducts.find(p => String(p.id) === String(promoProductId));
-                const pname = promoProduct?.name || `Product #${promoProductId}`;
-                showToast(`❌ Yeh promo sirf "${pname}" ke liye valid hai`);
-                return false;
-            }
-        }
+      if (error) throw error;
 
-        // Minimum order check
-        if (data.min_order > 0) {
-            const cartTotal = currentCheckoutItems.reduce((t, i) => t + (i.price * i.qty), 0);
-            if (cartTotal < data.min_order) {
-                showToast(`❌ Minimum order ₹${data.min_order} chahiye. Aapka: ₹${cartTotal}`);
-                return false;
-            }
-        }
+      const all = data || [];
+      const approved = all.filter((r) => r.status === 'Approved');
+      const totalEarned = approved.reduce((s, r) => s + (r.earnings || 0), 0);
 
-        activePromoCode = data;
-        promoDiscount = data.discount;
-        showToast(`🎉 Promo applied! ₹${data.discount} discount!`);
-        updateCheckoutTotals();
+      if (totalEl) totalEl.textContent = `₹${totalEarned}`;
+      if (countEl) countEl.textContent = all.length;
 
-        const promoArea = document.getElementById('promo-section-container');
-        if (promoArea) promoArea.innerHTML = _promoAppliedHtml();
-        return true;
+      if (!all.length) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-gray-400">
+            <i class="fas fa-video text-4xl mb-3 block opacity-40"></i>
+            <p class="font-semibold text-sm">Abhi tak koi submission nahi</p>
+            <p class="text-xs mt-1 text-gray-400">Upar form se request submit karo</p>
+          </div>`;
+        return;
+      }
 
-    } catch (err) {
-        showToast('Error: ' + err.message);
-        return false;
-    }
-}
+      const BADGE = {
+        Pending: 'bg-amber-100 text-amber-700',
+        Approved: 'bg-green-100 text-green-700',
+        Rejected: 'bg-red-100 text-red-600',
+      };
+      const ICON = { Pending: '⏳', Approved: '✅', Rejected: '❌' };
 
-/* ============================================================
-   CHANGE 6: loadProductPromos — product page pe promos dikhao
-   ============================================================ */
-async function loadProductPromos(productId) {
-    const section = document.getElementById('pdp-promo-section');
-    const listEl = document.getElementById('pdp-promo-codes-list');
-    if (!section || !listEl) return;
-
-    try {
-        const now = new Date().toISOString();
-        // Fetch product-specific promos
-        const { data, error } = await dbClient
-            .from('promo_codes')
-            .select('*')
-            .eq('is_active', true)
-            .eq('product_id', String(productId))
-            .gt('expires_at', now);
-
-        if (error) throw error;
-
-        if (!data || data.length === 0) {
-            section.classList.add('hidden');
-            return;
-        }
-
-        section.classList.remove('hidden');
-        listEl.innerHTML = data.map(promo => {
-            const expiresAt = new Date(promo.expires_at);
-            const diff = expiresAt - new Date();
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
-
-            return `<div class="flex items-center justify-between bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-tag text-rose-500 text-sm"></i>
-                    </div>
-                    <div>
-                        <div class="font-black text-sm text-rose-700 tracking-widest" style="letter-spacing:0.12em;">${promo.code}</div>
-                        <div class="text-xs text-gray-500">₹${promo.discount} off • Expires in ⏳ ${timeStr}</div>
-                    </div>
-                </div>
-                <button onclick="copyAndApplyPromo('${promo.code}', ${productId})"
-                    class="text-xs font-black bg-rose-600 text-white px-3 py-1.5 rounded-lg hover:bg-rose-700 active:scale-95 transition-all whitespace-nowrap">
-                    Apply
-                </button>
-            </div>`;
-        }).join('');
-
-    } catch (e) {
-        section.classList.add('hidden');
-    }
-}
-
-// Helper: copy promo code and navigate to checkout with it pre-applied
-function copyAndApplyPromo(code, productId) {
-    navigator.clipboard?.writeText(code).catch(() => {});
-    showToast(`📋 Code copied: ${code} — Checkout mein paste karo!`);
-    // Pre-fill the promo input if user goes to checkout
-    window._pendingPromoCode = code;
-    window._pendingPromoProductId = productId;
-}
-
-/* ============================================================
-   CHANGE 7: openProductPage — loads product promos
-   ============================================================ */
-async function openProductPage(id, isGoldProduct = false) {
-    let p = products.find(x => x.id === id);
-    if (!p) p = goldProducts.find(x => x.id === id);
-    if (!p) return;
-
-    viewingProductId = p.id;
-    addToRecentlyViewed(id);
-
-    const isPerf = isPerfumeCategory(p.category);
-    const sizeArray = isPerf
-        ? (p.available_sizes?.length ? p.available_sizes : PERFUME_ML_SIZES)
-        : (p.available_sizes?.length ? p.available_sizes : getDefaultSizes(p.sub || p.category));
-    const isCombo = COMBO_SUBS.has(p.sub || '');
-    selectedComboParts = null;
-    selectedSize = sizeArray[1] || sizeArray[0];
-
-    if (isCombo) {
-        const groups = getComboSizeGroups(sizeArray);
-        selectedComboParts = {};
-        if (groups.topwear.length) selectedComboParts.topwear = groups.topwear[0];
-        if (groups.bottomwear.length) selectedComboParts.bottomwear = groups.bottomwear[0];
-        if (groups.footwear.length) selectedComboParts.footwear = groups.footwear[0];
-        if (groups.watch.length) selectedComboParts.watch = groups.watch[0];
-        _composeComboSizeLabel();
-    }
-
-    const imgList = p.imgs?.length ? p.imgs : (p.img ? [p.img] : ['https://placehold.co/600x420/eee/333?text=No+Image']);
-    const sizeLabel = isPerf ? i18n('volume_select') : i18n('size_select');
-    const isGold = p.is_gold || isGoldProduct || false;
-    const desc = p.description || p.desc || 'Premium quality product.';
-
-    let sliderHtml;
-    if (imgList.length === 1) {
-        sliderHtml = `<div class="rounded-lg overflow-hidden border shadow-sm"><img src="${imgList[0]}" class="w-full h-[420px] object-cover" alt="${p.name}"></div>`;
-    } else {
-        sliderHtml = `<div><div class="pdp-img-slider hide-scrollbar" id="pdp-slider-${id}">${imgList.map((src, i) => `<img src="${src}" alt="${p.name} ${i + 1}" data-index="${i}">`).join('')}</div><div class="pdp-thumb-strip mt-2" id="pdp-thumbs-${id}">${imgList.map((src, i) => `<img src="${src}" alt="thumb ${i + 1}" class="pdp-thumb ${i === 0 ? 'active' : ''}" data-index="${i}" onclick="pdpScrollToSlide(${i})">`).join('')}</div></div>`;
-    }
-
-    document.getElementById('pdp-container').innerHTML = `${sliderHtml}
-    <div class="flex flex-col justify-center">
-        <div class="text-xs font-bold uppercase mb-1" style="color:${isGold ? '#B8860B' : '#e11d48'}">${isGold ? '⭐ Gold · ' : ''}${p.category}${p.sub ? ' › ' + getSubDisplayName(p.sub) : ''}</div>
-        ${p.stock_qty ? `<div class="text-xs text-green-600 font-semibold mb-2">📦 ${i18n('in_stock')}: ${p.stock_qty}</div>` : ''}
-        <div class="flex justify-between items-start mb-2">
-            <h1 class="text-3xl font-black text-gray-800">${p.name}</h1>
-            <div class="flex gap-2">
-                <button onclick="shareWithReferral(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price})" class="bg-green-50 hover:bg-green-100 text-green-600 border border-green-200 rounded-full w-10 h-10 flex items-center justify-center shadow-sm"><i class="fas fa-share-alt"></i></button>
-                <button onclick="nativeShareProduct(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price})" class="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-sm"><i class="fas fa-link"></i></button>
+      container.innerHTML = all
+        .map(
+          (r) => `
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                <span style="font-weight:700;font-size:14px;color:#1f2937;">${r.platform || '—'}</span>
+                <span class="${BADGE[r.status] || 'bg-gray-100 text-gray-500'}" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px;">${ICON[r.status] || ''} ${r.status}</span>
+              </div>
+              <div style="font-size:12px;color:#6b7280;margin-bottom:4px;">👁 ${(r.views || 0).toLocaleString()} views${r.submitted_at ? ' · ' + new Date(r.submitted_at).toLocaleDateString('en-IN') : ''}</div>
+              ${r.video_url ? `<a href="${r.video_url}" target="_blank" rel="noopener" style="font-size:12px;color:#2563eb;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.video_url}</a>` : ''}
+              ${r.description ? `<p style="font-size:12px;color:#6b7280;margin-top:4px;font-style:italic;">"${r.description}"</p>` : ''}
             </div>
-        </div>
-        <div class="flex items-baseline gap-3 mb-4">
-            <span class="text-3xl font-bold">₹${p.price}</span>
-            ${p.oldprice ? `<span class="text-lg line-through font-semibold" style="color:#C8102E;opacity:0.72">₹${p.oldprice}</span>` : ''}
-        </div>
-        <p class="text-gray-600 text-sm mb-6">${desc}</p>
-        <div class="mb-6">
-            <div class="font-bold text-sm mb-2">${sizeLabel}</div>
-            ${isPerf ? `<div>
-                <div class="flex flex-wrap gap-2 mb-3" id="size-selector">${sizeArray.map(s => `<button onclick="selectSize('${s}')" class="size-btn ${s === selectedSize ? 'selected' : ''} w-fit px-4 py-1.5 rounded-full border-2 font-bold text-sm transition-colors">${s}</button>`).join('')}</div>
-                <div class="flex items-center border-2 border-purple-200 rounded-xl overflow-hidden focus-within:border-purple-500 bg-white max-w-[220px]">
-                    <span class="bg-purple-100 px-3 py-2.5 text-purple-700 font-black text-sm border-r border-purple-200 whitespace-nowrap">ml</span>
-                    <input type="number" id="pdp-custom-ml" placeholder="e.g. 45" min="1" max="2000" class="flex-1 px-3 py-2.5 text-sm font-bold outline-none" style="font-size:16px;" oninput="if(this.value&&!isNaN(this.value)){selectSize(this.value+'ml');document.querySelectorAll('#size-selector .size-btn').forEach(b=>b.classList.remove('selected'));}">
-                </div>
-            </div>` : `${isCombo ? (()=>{
-                const groups = getComboSizeGroups(sizeArray);
-                const groupOrder = [['topwear','Topwear'],['bottomwear','Bottomwear'],['footwear','Footwear'],['watch','Watch']];
-                const chunks = groupOrder.filter(([k]) => groups[k]?.length).map(([k, label]) =>
-                    `<div class="mb-3"><div class="text-xs font-bold text-gray-500 mb-1">${label}</div><div class="flex flex-wrap gap-2" id="combo-size-${k}">${groups[k].map(s => `<button onclick="selectComboPartSize('${k}','${s}')" class="size-btn ${selectedComboParts && selectedComboParts[k] === s ? 'selected' : ''} w-fit px-4 py-2 min-w-[3rem] rounded-full border border-gray-300 font-bold transition-colors">${s}</button>`).join('')}</div></div>`
-                );
-                if (chunks.length) return chunks.join('');
-                return `<div class="flex flex-wrap gap-3" id="size-selector">${sizeArray.map(s => `<button onclick="selectSize('${s}')" class="size-btn ${s === selectedSize ? 'selected' : ''} w-fit px-4 py-2 min-w-[3rem] rounded-full border border-gray-300 font-bold transition-colors">${s}</button>`).join('')}</div>`;
-            })() : `<div class="flex flex-wrap gap-3" id="size-selector">${sizeArray.map(s => `<button onclick="selectSize('${s}')" class="size-btn ${s === selectedSize ? 'selected' : ''} w-fit px-4 py-2 min-w-[3rem] rounded-full border border-gray-300 font-bold transition-colors">${s}</button>`).join('')}</div>`}`}
-        </div>
-        <div class="grid grid-cols-2 gap-3 mt-auto">
-            <button onclick="addToCartPDP()" class="border-2 border-gray-800 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-50 active:scale-95 transition-all">${i18n('add_to_cart')}</button>
-            <button onclick="buyNowPDP()" class="bg-rose-600 text-white py-3 rounded-lg font-bold hover:bg-rose-700 active:scale-95 transition-all shadow-md">${i18n('buy_now')}</button>
-        </div>
-    </div>`;
-
-    navigate('product');
-
-    // Inject safe delivery button
-    requestAnimationFrame(() => setTimeout(_injectSafeDeliveryButton, 80));
-
-    if (imgList.length > 1) {
-        requestAnimationFrame(() => {
-            const slider = document.getElementById(`pdp-slider-${id}`);
-            if (slider) slider.addEventListener('scroll', () => {
-                const idx = Math.round(slider.scrollLeft / slider.offsetWidth);
-                updatePdpActiveThumbnail(id, idx);
-            }, { passive: true });
-        });
-    }
-
-    // ── CHANGE 7: Load product promos ──
-    await loadProductPromos(p.id);
-
-    // Pre-apply pending promo if matches this product
-    if (window._pendingPromoCode && window._pendingPromoProductId === p.id) {
-        const promoInput = document.getElementById('promo-code-input');
-        if (promoInput) promoInput.value = window._pendingPromoCode;
-        window._pendingPromoCode = null;
-        window._pendingPromoProductId = null;
-    }
-
-    await loadReviews(p.id);
-    renderRecommendedProducts(p.category, p.id);
-}
-
-/* ============================================================
-   CHANGE 8: adminCreatePromoCode — product ID support
-   Already called from admin HTML, this replaces/augments createPromoCode()
-   ============================================================ */
-async function adminCreatePromoCode() {
-    // Read from admin promo form (works for both inline form in HTML + tab form)
-    const codeEl = document.getElementById('new-promo-code');
-    const discEl = document.getElementById('new-promo-discount');
-    const minEl = document.getElementById('new-promo-min');
-    const maxUsesEl = document.getElementById('new-promo-maxuses');
-    const expiresEl = document.getElementById('new-promo-expires');
-    const productIdEl = document.getElementById('new-promo-product-id');
-
-    const code = (codeEl?.value || '').trim().toUpperCase();
-    const discount = parseInt(discEl?.value) || 0;
-    const minOrder = parseInt(minEl?.value) || 0;
-    const maxUses = parseInt(maxUsesEl?.value) || 100;
-    const expiresDate = expiresEl?.value;
-    const productId = (productIdEl?.value || '').trim() || null;
-
-    if (!code) return showToast('Promo code enter karo');
-    if (!discount || discount < 1) return showToast('Discount amount enter karo (minimum ₹1)');
-    if (!expiresDate) return showToast('Expiry date select karo');
-    if (!/^[A-Z0-9]+$/.test(code)) return showToast('Code sirf letters aur numbers use karo (no spaces/symbols)');
-
-    const expiresAt = new Date(expiresDate + 'T23:59:59').toISOString();
-
-    const payload = {
-        code,
-        discount,
-        type: 'flat',
-        min_order: minOrder,
-        max_uses: maxUses,
-        used_count: 0,
-        expires_at: expiresAt,
-        is_active: true,
-        created_by: localStorage.getItem('outfitkart_admin_mobile') || 'admin',
-    };
-
-    // ── Product-specific promo (Change 8) ──
-    if (productId) {
-        // Validate product exists
-        const prod = products.find(p => String(p.id) === String(productId))
-            || goldProducts.find(p => String(p.id) === String(productId));
-        if (!prod) {
-            const confirmAnyway = confirm(`Product ID "${productId}" products mein nahi mila. Phir bhi create karein?`);
-            if (!confirmAnyway) return;
-        }
-        payload.product_id = productId;
-    }
-
-    try {
-        const { error } = await dbClient.from('promo_codes').insert([payload]);
-        if (error) throw error;
-
-        showToast(`✅ Promo "${code}" created!${productId ? ` (Product #${productId} ke liye)` : ' (Sab products ke liye)'}`);
-
-        // Clear form fields
-        [codeEl, discEl, productIdEl].forEach(el => { if (el) el.value = ''; });
-        if (minEl) minEl.value = '';
-        if (maxUsesEl) maxUsesEl.value = '100';
-        if (expiresEl) expiresEl.value = '';
-
-        // Reload promo list if tab is active
-        if (typeof loadAdminPromoCodes === 'function') loadAdminPromoCodes();
-
-    } catch (err) {
-        const isDuplicate = err.message.includes('duplicate') || err.message.includes('unique');
-        showToast('❌ ' + err.message + (isDuplicate ? '\n(Code already exists — alag naam try karo)' : ''));
-    }
-}
-
-/* ============================================================
-   PROMO HELPERS (kept in sync)
-   ============================================================ */
-function removePromoCode() {
-    activePromoCode = null;
-    promoDiscount = 0;
-    const promoArea = document.getElementById('promo-section-container');
-    if (promoArea) promoArea.innerHTML = _promoInputHtml();
-    showToast('Promo code removed');
-    updateCheckoutTotals();
-}
-
-async function _incrementPromoUsage() {
-    if (!activePromoCode) return;
-    try {
-        await dbClient.from('promo_codes')
-            .update({ used_count: (activePromoCode.used_count || 0) + 1 })
-            .eq('code', activePromoCode.code);
-    } catch { }
-}
-
-function _promoInputHtml() {
-    return `<div class="flex gap-2">
-        <input type="text" id="promo-code-input" placeholder="Enter promo code" class="flex-1 border border-gray-300 rounded-xl px-3 py-2.5 text-sm font-bold uppercase focus:ring-2 focus:ring-rose-400 outline-none" style="letter-spacing:0.06em;">
-        <button onclick="applyPromoCode()" class="bg-rose-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-rose-700 active:scale-95 transition-all whitespace-nowrap">Apply</button>
-    </div>
-    <div class="flex gap-2 mt-2">
-        <a href="${TELEGRAM_CHANNEL}" target="_blank" rel="noopener" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white active:scale-95" style="background:linear-gradient(135deg,#0088cc,#00b0f4)"><i class="fab fa-telegram text-sm"></i> Get Code on Telegram</a>
-        <a href="${WHATSAPP_CHANNEL}" target="_blank" rel="noopener" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white active:scale-95" style="background:linear-gradient(135deg,#25D366,#128C7E)"><i class="fab fa-whatsapp text-sm"></i> Get Code on WhatsApp</a>
-    </div>`;
-}
-
-function _promoAppliedHtml() {
-    if (!activePromoCode) return _promoInputHtml();
-    const isProductSpecific = activePromoCode.product_id;
-    return `<div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl p-3">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"><i class="fas fa-tag text-green-600 text-xs"></i></div>
-            <div>
-                <div class="font-black text-sm text-green-800 tracking-wider">${activePromoCode.code}</div>
-                <div class="text-xs text-green-600">₹${promoDiscount} discount applied! 🎉${isProductSpecific ? ' <span class="text-purple-600">(Product-specific)</span>' : ''}</div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-size:16px;font-weight:900;color:${r.status === 'Approved' ? '#16a34a' : '#9ca3af'};">₹${r.earnings || 0}</div>
             </div>
-        </div>
-        <button onclick="removePromoCode()" class="text-red-500 text-xs font-bold hover:text-red-700 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg"><i class="fas fa-times mr-1"></i>Remove</button>
-    </div>`;
-}
-
-/* ============================================================
-   AUTO-APPLY PROMO if pending (called after checkout loads)
-   ============================================================ */
-function _checkPendingPromo() {
-    if (window._pendingPromoCode && currentCheckoutItems.length > 0) {
-        const promoInput = document.getElementById('promo-code-input');
-        if (promoInput) {
-            promoInput.value = window._pendingPromoCode;
-            showToast(`💡 Promo code "${window._pendingPromoCode}" ready — Apply dabao!`);
-        }
+          </div>
+          ${r.status === 'Approved' ? `<div style="font-size:12px;color:#16a34a;font-weight:600;margin-top:8px;background:#f0fdf4;border-radius:8px;padding:6px 12px;">✅ ₹${r.earnings} wallet mein credit ho gaya</div>` : ''}
+          ${r.status === 'Rejected' && r.reject_reason ? `<div style="font-size:12px;color:#ef4444;margin-top:8px;background:#fef2f2;border-radius:8px;padding:6px 12px;">❌ ${r.reject_reason}</div>` : ''}
+        </div>`
+        )
+        .join('');
+    } catch (err) {
+      if (container)
+        container.innerHTML = `
+          <div class="text-center py-6 text-red-400 text-sm">
+            <i class="fas fa-exclamation-circle mb-2 block text-2xl"></i>
+            ${err.message}
+          </div>`;
     }
-}
+  };
 
-/* ============================================================
-   EXPORTS — all changed functions
-   ============================================================ */
-Object.assign(window, {
-    openProfilePage,
-    closeProfilePage,
-    switchProfileTab,
-    checkAuthUI,
-    _refreshProfileStats,
-    closeSuccessAndGoToOrders,
-    applyPromoCode,
-    removePromoCode,
-    loadProductPromos,
-    copyAndApplyPromo,
-    openProductPage,
-    adminCreatePromoCode,
-    _incrementPromoUsage,
-    _promoInputHtml,
-    _promoAppliedHtml,
-    _checkPendingPromo,
-});
+  console.log('[FIX-PATCH] ✅ Fix 2: loadInfluencerRequests patched with retry + fallback');
+
+  /* ──────────────────────────────────────────────────────────────
+     FIX 3 — ADMIN PANEL INFLUENCER REQUESTS TAB
+     Problem: Admin ke paas influencer_requests approve/reject
+              karne ke liye koi UI nahi tha.
+     Solution: Ads tab ki tarah ek naya tab inject karo.
+  ─────────────────────────────────────────────────────────────── */
+
+  // Admin side: influencer requests load + approve/reject
+  window.loadAdminInfluencer = async function () {
+    const container = document.getElementById('admin-inf-list');
+    if (!container) return;
+    container.innerHTML =
+      '<div class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl"></i></div>';
+    try {
+      const client = window.dbClient || window.supabase;
+      if (!client) throw new Error('DB not ready');
+
+      const { data, error } = await client
+        .from('influencer_requests')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) throw error;
+      const all = data || [];
+
+      if (!all.length) {
+        container.innerHTML =
+          '<div class="text-center py-10 text-gray-400"><i class="fas fa-video text-4xl mb-3 block opacity-40"></i><p>Koi request nahi mili</p></div>';
+        return;
+      }
+
+      // Stats
+      const pending = all.filter((r) => r.status === 'Pending').length;
+      const approved = all.filter((r) => r.status === 'Approved').length;
+      const totalPayout = all
+        .filter((r) => r.status === 'Approved')
+        .reduce((s, r) => s + (r.earnings || 0), 0);
+
+      const BADGE_STYLE = {
+        Pending: 'background:#fef3c7;color:#92400e;',
+        Approved: 'background:#dcfce7;color:#15803d;',
+        Rejected: 'background:#fee2e2;color:#dc2626;',
+      };
+
+      container.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+          <div style="background:#fef3c7;border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#92400e;">${pending}</div>
+            <div style="font-size:11px;font-weight:700;color:#a16207;">Pending</div>
+          </div>
+          <div style="background:#dcfce7;border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#15803d;">${approved}</div>
+            <div style="font-size:11px;font-weight:700;color:#166534;">Approved</div>
+          </div>
+          <div style="background:#ede9fe;border-radius:12px;padding:12px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:#7c3aed;">₹${totalPayout}</div>
+            <div style="font-size:11px;font-weight:700;color:#6d28d9;">Total Paid</div>
+          </div>
+        </div>
+        ${all
+          .map(
+            (r) => `
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:800;font-size:14px;color:#111827;margin-bottom:2px;">${r.name || '—'} <span style="font-size:11px;color:#6b7280;font-weight:500;">· ${r.platform || ''}</span></div>
+                <div style="font-size:12px;color:#6b7280;">📱 ${r.mobile || '—'}</div>
+                <div style="font-size:12px;color:#6b7280;">👁 ${(r.views || 0).toLocaleString()} views · 💰 ₹${r.earnings || 0} potential</div>
+                ${r.video_url ? `<a href="${r.video_url}" target="_blank" rel="noopener" style="font-size:11px;color:#2563eb;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px;">${r.video_url}</a>` : ''}
+                ${r.profile_url ? `<a href="${r.profile_url}" target="_blank" rel="noopener" style="font-size:11px;color:#7c3aed;display:block;margin-top:2px;">🔗 Profile link</a>` : ''}
+                ${r.description ? `<p style="font-size:11px;color:#6b7280;margin-top:4px;font-style:italic;">"${r.description}"</p>` : ''}
+              </div>
+              <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:9999px;flex-shrink:0;${BADGE_STYLE[r.status] || 'background:#f3f4f6;color:#374151;'}">${r.status}</span>
+            </div>
+            ${
+              r.status === 'Pending'
+                ? `<div style="display:flex;gap:8px;margin-top:8px;">
+                    <button onclick="adminApproveInfluencer(${r.id},${r.earnings || 0},'${r.mobile}')"
+                      style="flex:1;background:#16a34a;color:#fff;border:none;padding:9px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">
+                      ✅ Approve & Credit ₹${r.earnings || 0}
+                    </button>
+                    <button onclick="adminRejectInfluencer(${r.id})"
+                      style="flex:1;background:#ef4444;color:#fff;border:none;padding:9px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;">
+                      ❌ Reject
+                    </button>
+                  </div>`
+                : r.status === 'Approved'
+                ? `<div style="font-size:12px;color:#16a34a;font-weight:600;background:#f0fdf4;border-radius:8px;padding:6px 12px;">✅ ₹${r.earnings} credited</div>`
+                : `<div style="font-size:12px;color:#ef4444;background:#fef2f2;border-radius:8px;padding:6px 12px;">❌ Rejected${r.reject_reason ? ': ' + r.reject_reason : ''}</div>`
+            }
+          </div>`
+          )
+          .join('')}`;
+    } catch (err) {
+      if (container)
+        container.innerHTML = `<div class="text-center py-6 text-red-400 text-sm"><i class="fas fa-exclamation-circle mb-2 block text-xl"></i>${err.message}</div>`;
+    }
+  };
+
+  // Admin: Approve karo aur wallet mein credit karo
+  window.adminApproveInfluencer = async function (id, earnings, mobile) {
+    if (!confirm(`₹${earnings} approve karein aur wallet mein credit karein?`)) return;
+    try {
+      const client = window.dbClient || window.supabase;
+      // 1. Status update karo
+      const { error: e1 } = await client
+        .from('influencer_requests')
+        .update({ status: 'Approved' })
+        .eq('id', id);
+      if (e1) throw e1;
+
+      // 2. Wallet credit karo (wallet_balance increment)
+      const { data: userData } = await client
+        .from('users')
+        .select('wallet_balance')
+        .eq('mobile', mobile)
+        .single();
+
+      if (userData) {
+        const newBalance = (userData.wallet_balance || 0) + earnings;
+        await client.from('users').update({ wallet_balance: newBalance }).eq('mobile', mobile);
+      }
+
+      typeof showToast === 'function' && showToast(`✅ Approved! ₹${earnings} credited to ${mobile}`);
+      window.loadAdminInfluencer();
+    } catch (err) {
+      typeof showToast === 'function' && showToast('❌ ' + err.message);
+    }
+  };
+
+  // Admin: Reject karo with reason
+  window.adminRejectInfluencer = async function (id) {
+    const reason = prompt('Rejection reason likhein (optional):') || 'Does not meet requirements';
+    try {
+      const client = window.dbClient || window.supabase;
+      const { error } = await client
+        .from('influencer_requests')
+        .update({ status: 'Rejected', reject_reason: reason })
+        .eq('id', id);
+      if (error) throw error;
+      typeof showToast === 'function' && showToast('🔴 Request rejected');
+      window.loadAdminInfluencer();
+    } catch (err) {
+      typeof showToast === 'function' && showToast('❌ ' + err.message);
+    }
+  };
+
+  // Admin tab inject karo
+  function _injectAdminInfluencerTab() {
+    // Nav button add karo
+    if (!document.getElementById('btn-admin-influencer')) {
+      // Ads button ke baad insert karo, ya payout ke baad
+      const anchor =
+        document.getElementById('btn-admin-ads') ||
+        document.getElementById('btn-admin-payout');
+      if (anchor) {
+        const btn = document.createElement('button');
+        btn.id = 'btn-admin-influencer';
+        btn.className =
+          'admin-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all';
+        btn.innerHTML = `
+          <span class="nav-icon"><i class="fas fa-star"></i></span>
+          <span class="flex-1 text-left">Influencer Requests</span>
+          <span style="font-size:10px;background:#ede9fe;color:#7c3aed;padding:2px 8px;border-radius:9999px;font-weight:700;" id="inf-pending-badge">...</span>`;
+        btn.onclick = () =>
+          typeof switchAdminTab === 'function' && switchAdminTab('influencer');
+        anchor.insertAdjacentElement('afterend', btn);
+        // Pending count badge refresh
+        _refreshInfPendingBadge();
+      }
+    }
+
+    // Tab content inject karo
+    if (!document.getElementById('admin-tab-influencer')) {
+      const adminContent = document.querySelector(
+        '#view-admin .flex-1.p-4, #view-admin .flex-1.p-4.md\\:p-6, #view-admin > div > div:last-child'
+      );
+      if (adminContent) {
+        const tab = document.createElement('div');
+        tab.id = 'admin-tab-influencer';
+        tab.className = 'admin-content-tab hidden space-y-4';
+        tab.innerHTML = `
+          <div style="background:#fff;padding:20px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1px solid #f3f4f6;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <h3 style="font-weight:800;font-size:18px;color:#7c3aed;display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-star"></i> Influencer Requests
+              </h3>
+              <button onclick="loadAdminInfluencer()"
+                style="font-size:12px;background:#ede9fe;color:#7c3aed;padding:6px 14px;border-radius:10px;font-weight:700;border:1px solid #ddd6fe;cursor:pointer;">
+                <i class="fas fa-sync-alt" style="margin-right:4px;"></i>Refresh
+              </button>
+            </div>
+            <div id="admin-inf-list">
+              <div class="text-center py-10 text-gray-400">
+                <i class="fas fa-star text-4xl mb-3 block opacity-30"></i>
+                <p>Click Refresh to load requests</p>
+              </div>
+            </div>
+          </div>`;
+        adminContent.appendChild(tab);
+      }
+    }
+
+    // switchAdminTab patch karo influencer ke liye
+    const origSwitch = window.switchAdminTab;
+    if (origSwitch && !window._infSwitchPatched) {
+      window._infSwitchPatched = true;
+      window.switchAdminTab = function (tab) {
+        if (tab === 'influencer') {
+          document.querySelectorAll('.admin-content-tab').forEach((el) => {
+            el.style.display = 'none';
+            el.classList.add('hidden');
+          });
+          const t = document.getElementById('admin-tab-influencer');
+          if (t) {
+            t.style.display = 'block';
+            t.classList.remove('hidden');
+          }
+          document
+            .querySelectorAll('.admin-nav-btn')
+            .forEach((b) => b.classList.remove('active'));
+          document.getElementById('btn-admin-influencer')?.classList.add('active');
+          window.loadAdminInfluencer();
+          return;
+        }
+        origSwitch(tab);
+      };
+    }
+
+    console.log('[FIX-PATCH] ✅ Fix 3: Admin Influencer tab injected');
+  }
+
+  // Pending badge count refresh
+  async function _refreshInfPendingBadge() {
+    const badge = document.getElementById('inf-pending-badge');
+    if (!badge) return;
+    try {
+      const client = window.dbClient || window.supabase;
+      if (!client) return;
+      const { data } = await client
+        .from('influencer_requests')
+        .select('id', { count: 'exact' })
+        .eq('status', 'Pending');
+      const count = data?.length || 0;
+      badge.textContent = count > 0 ? count + ' New' : '0';
+      badge.style.background = count > 0 ? '#fef3c7' : '#f3f4f6';
+      badge.style.color = count > 0 ? '#92400e' : '#6b7280';
+    } catch (_) {
+      badge.textContent = '—';
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────────────
+     INIT — Saare fixes ko sahi time pe lagao
+  ─────────────────────────────────────────────────────────────── */
+  function _applyAllFixes() {
+    // Fix 1 — Combos section
+    // Home section already render ho chuka hoga, isliye replace karo
+    setTimeout(_fixShopByCategoryWithCombos, 800);
+
+    // Fix 3 — Admin Influencer tab
+    // Admin panel load hone ke baad inject karo
+    setTimeout(_injectAdminInfluencerTab, 1200);
+
+    // Fix 2 — Influencer page observer (agar naya page khule)
+    const infPage = document.getElementById('profile-page-influencer');
+    if (infPage && !infPage._fixObserverAttached) {
+      infPage._fixObserverAttached = true;
+      new MutationObserver(() => {
+        if (!infPage.classList.contains('hidden')) {
+          setTimeout(window.loadInfluencerRequests, 150);
+        }
+      }).observe(infPage, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Navigate patch — agar navigate('shop') se home reload ho toh Combos phir se add karo
+    const origNavigate = window.navigate;
+    if (origNavigate && !window._combosNavPatched) {
+      window._combosNavPatched = true;
+      window.navigate = function (view, ...args) {
+        const result = origNavigate(view, ...args);
+        if (view === 'home') {
+          setTimeout(_fixShopByCategoryWithCombos, 600);
+        }
+        return result;
+      };
+    }
+
+    console.log(
+      '%c🛍️ OutfitKart FIX PATCH v1.0 ✅ Combos + Influencer + Admin all fixed!',
+      'background:#7c3aed;color:white;font-weight:900;font-size:12px;padding:4px 14px;border-radius:6px;'
+    );
+  }
+
+  // Boot
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(_applyAllFixes, 700));
+  } else {
+    setTimeout(_applyAllFixes, 700);
+  }
+
+  // Global exports
+  Object.assign(window, {
+    loadAdminInfluencer: window.loadAdminInfluencer,
+    adminApproveInfluencer: window.adminApproveInfluencer,
+    adminRejectInfluencer: window.adminRejectInfluencer,
+    loadInfluencerRequests: window.loadInfluencerRequests,
+  });
+})();
