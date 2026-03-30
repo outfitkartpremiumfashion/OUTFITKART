@@ -407,7 +407,15 @@ window.openProfilePage = function(pageName) {
   document.querySelectorAll('.profile-page').forEach(p => p.classList.add('hidden'));
   const page = document.getElementById('profile-page-' + pageName);
   if (!page) { console.warn('[OutfitKart] Profile page not found:', pageName); return; }
+
+  // Agar page body ka direct child nahi hai to move karo taaki footer se bhi kaam kare
+  if (page.parentElement !== document.body) {
+    document.body.appendChild(page);
+  }
+
   page.classList.remove('hidden');
+  page.style.position = 'fixed';
+  page.style.inset = '0';
   page.style.zIndex = '200';
 
   const loaders = {
