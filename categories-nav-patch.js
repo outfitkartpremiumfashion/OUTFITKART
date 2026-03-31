@@ -1,9 +1,10 @@
-use strict';
+'use strict';
 /* ================================================================
    OutfitKart — CATEGORIES NAV PATCH v5.0
    - Bottom nav "Categories" already set in index.html
    - Har subcat ka real Unsplash image hardcoded hai
    - Products load hone pe real product images replace kar denge
+   - Cart page Flipkart style (empty bug fixed)
    ================================================================ */
 
 (function _okCatPatch() {
@@ -19,7 +20,7 @@ use strict';
   #ok-cph{background:white;height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 6px rgba(0,0,0,.08);flex-shrink:0;}
   #ok-cph h2{font-size:1.05rem;font-weight:900;color:#111827;margin:0;}
   #ok-cpbody{display:flex;flex:1;overflow:hidden;}
-  #ok-csb{width:90px;flex-shrink:0;background:#efefef;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:80px;}
+  #ok-csb{width:90px;flex-shrink:0;background:#efefef;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   #ok-csb::-webkit-scrollbar{display:none;}
   .ok-si{display:flex;flex-direction:column;align-items:center;padding:12px 6px;cursor:pointer;border-left:3px solid transparent;text-align:center;gap:5px;}
   .ok-si.active{background:white;border-left-color:#e11d48;}
@@ -27,7 +28,7 @@ use strict';
   .ok-si.active img{border-color:#e11d48;}
   .ok-si span{font-size:9.5px;font-weight:700;color:#4b5563;line-height:1.2;word-break:break-word;}
   .ok-si.active span{color:#e11d48;}
-  #ok-crp{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:white;padding:10px;padding-bottom:80px;}
+  #ok-crp{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:white;padding:10px;}
   .ok-vabtn{display:flex;align-items:center;justify-content:space-between;background:#fff1f2;border:1.5px solid #fecdd3;border-radius:12px;padding:11px 14px;cursor:pointer;margin-bottom:10px;}
   .ok-vabtn:active{background:#ffe4e6;}
   .ok-vabtn span{font-size:12px;font-weight:800;color:#e11d48;}
@@ -43,10 +44,7 @@ use strict';
   .ok-adc img{width:100%;height:76px;object-fit:cover;display:block;}
   .ok-adbg{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.5);color:white;font-size:7px;font-weight:800;padding:2px 5px;border-radius:99px;}
 
-  #ok-nav-categories.ok-nav-active{color:#e11d48!important;}
-  `;
-  document.head.appendChild(s);
-})();
+  
 
 
 /* ────────────────────────────────────────────────────────────────
@@ -73,7 +71,7 @@ const CATS = [
         {n:'Slim Fit Jeans',      img:'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=200&h=220&fit=crop&q=80'},
         {n:'Cotton Trousers',     img:'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&h=220&fit=crop&q=80'},
         {n:'Joggers',             img:'https://images.unsplash.com/photo-1556906781-9a412961a28b?w=200&h=220&fit=crop&q=80'},
-        {n:'Cargo Pants',         img:'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=200&h=220&fit=crop&q=80'},
+        {n:'Cargo Pants',         img:'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=200&h=220&fit=crop&q=80'},
         {n:'Formal Pant',         img:'https://images.unsplash.com/photo-1594938298603-c8148c4b4357?w=200&h=220&fit=crop&q=80'},
         {n:'Trousers',            img:'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=200&h=220&fit=crop&q=80'},
       ]},
@@ -92,20 +90,20 @@ const CATS = [
     groups:[
       { label:'🥻 Ethnic', subs:[
         {n:'Sarees',   img:'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=200&h=220&fit=crop&q=80'},
-        {n:'Kurtis',   img:'https://images.unsplash.com/photo-1582718560869-01152e38cfd4?w=200&h=220&fit=crop&q=80'},
+        {n:'Kurtis',   img:'https://images.unsplash.com/photo-1610189352649-ff58ea8ffe71?w=200&h=220&fit=crop&q=80'},
         {n:'Lehengas', img:'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=200&h=220&fit=crop&q=80'},
       ]},
       { label:'👖 Bottomwear', subs:[
         {n:'Straight Fit Jeans', img:'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&h=220&fit=crop&q=80'},
         {n:'Trousers',           img:'https://images.unsplash.com/photo-1594938298603-c8148c4b4357?w=200&h=220&fit=crop&q=80'},
         {n:'Baggy Jeans',        img:'https://images.unsplash.com/photo-1604176354204-9268737828e4?w=200&h=220&fit=crop&q=80'},
-        {n:'Cargo Jeans',        img:'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=200&h=220&fit=crop&q=80'},
+        {n:'Cargo Jeans',        img:'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=200&h=220&fit=crop&q=80'},
         {n:'Skinny Fit Jeans',   img:'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=200&h=220&fit=crop&q=80'},
         {n:'Slim Fit Jeans',     img:'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=220&fit=crop&q=80'},
       ]},
       { label:'👗 Western', subs:[
         {n:'Tops',          img:'https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=200&h=220&fit=crop&q=80'},
-        {n:'Palazzo',       img:'https://images.unsplash.com/photo-1583496661160-fb5886a773ec?w=200&h=220&fit=crop&q=80'},
+        {n:'Palazzo',       img:'https://images.unsplash.com/photo-1594938374182-a57f7f80b9d9?w=200&h=220&fit=crop&q=80'},
         {n:'Tops & Tunics', img:'https://images.unsplash.com/photo-1564257577049-b26d2ee15f21?w=200&h=220&fit=crop&q=80'},
         {n:'Dresses',       img:'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=200&h=220&fit=crop&q=80'},
         {n:'Skirts',        img:'https://images.unsplash.com/photo-1583496661160-fb5886a773ec?w=200&h=220&fit=crop&q=80'},
@@ -296,29 +294,19 @@ function _renderRight(i){
     groupsHtml+=`<div class="ok-glbl">${grp.label}</div><div class="ok-scg">${cards}</div>`;
   });
 
-  const promoHtml=`<div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
-    <div onclick="if(typeof _closeCategories==='function')_closeCategories();if(typeof openProfilePage==='function')openProfilePage('referrals');" style="background:linear-gradient(135deg,#064e3b,#065f46);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-      <div style="width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🎁</div>
-      <div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:900;color:white;">Refer &amp; Earn ₹50+</div><div style="font-size:9.5px;color:rgba(255,255,255,.7);margin-top:2px;">Dost ko refer karo, 5% commission pao</div></div>
-      <i class="fas fa-chevron-right" style="color:rgba(255,255,255,.5);font-size:10px;"></i>
-    </div>
-    <div onclick="if(typeof _closeCategories==='function')_closeCategories();if(typeof openProfilePage==='function')openProfilePage('influencer');" style="background:linear-gradient(135deg,#4c1d95,#6d28d9);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-      <div style="width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🎬</div>
-      <div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:900;color:white;">Influencer Program</div><div style="font-size:9.5px;color:rgba(255,255,255,.7);margin-top:2px;">Video banao, ₹50 per 1K views kamao</div></div>
-      <i class="fas fa-chevron-right" style="color:rgba(255,255,255,.5);font-size:10px;"></i>
-    </div>
-  </div>`;
-
   right.innerHTML=`${adsHtml}
     <div class="ok-vabtn" onclick="${vaAct}">
       <span><i class="fas fa-th-large" style="margin-right:6px;"></i>View All ${cleanLabel}</span>
       <i class="fas fa-chevron-right"></i>
-    </div>${groupsHtml}${promoHtml}`;
+    </div>${groupsHtml}`;
   right.scrollTop=0;
 }
 
+/* _openCategories — turant define, _init se pehle bhi kaam kare */
 window._openCategories=function(){
+  if(!document.getElementById('view-categories')){_buildCatPage();_buildCartPage();}
   document.querySelectorAll('.view-section').forEach(v=>v.classList.add('hidden'));
+  document.getElementById('view-cart-page')?.classList.add('hidden');
   document.getElementById('view-categories')?.classList.remove('hidden');
   _navActive(true);window.currentView='categories';
 };
@@ -340,8 +328,7 @@ function _watchProducts(){
 
 
 
-
-/* ── NAV PATCHES ── */
+  
 
 function _navActive(on){
   const btn=document.getElementById('ok-nav-categories');
@@ -355,6 +342,7 @@ function _patchNavigate(){
   const orig=window.navigate;
   window.navigate=function(view,...args){
     if(view!=='categories'){_closeCategories();_navActive(false);}
+    if(view!=='cart')_closeCartPage();
     return orig(view,...args);
   };
 }
@@ -362,10 +350,11 @@ function _patchNavigate(){
 
 /* ── INIT ── */
 function _init(){
-  _buildCatPage();
+  _buildCatPage() ;
   _watchProducts();
 
   const wn=setInterval(()=>{if(typeof window.navigate==='function'){clearInterval(wn);_patchNavigate();}},300);
+  
 
   /* Ads watch */
   let aa=0;
@@ -377,8 +366,6 @@ function _init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(_init,500));
 else setTimeout(_init,500);
 
-Object.assign(window,{
-  _openCategories,_closeCategories,_okCatSel:window._okCatSel,
-});
+/* Already assigned on window above */
 
 })();
