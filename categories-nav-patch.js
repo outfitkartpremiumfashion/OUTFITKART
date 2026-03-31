@@ -1,8 +1,4 @@
-R,
-});
-
-})();
-'use strict';
+use strict';
 /* ================================================================
    OutfitKart — CATEGORIES NAV PATCH v5.0
    - Bottom nav "Categories" already set in index.html
