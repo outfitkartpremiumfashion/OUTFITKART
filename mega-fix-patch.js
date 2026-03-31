@@ -19,80 +19,6 @@
 (function () {
 
 /* ────────────────────────────────────────────────────────────────
-   1. CART FIX — product name/image/price correctly lookup
-   Problem: categories-nav-patch cart mein item.name/img directly
-   use karta hai, but script-core cart sirf {productId, size, qty}
-   store karta hai — naam/image miss ho jaati hai
-   ──────────────────────────────────────────────────────────────── */
-function _enrichCartItems(cartArr) {
-  const allP = [...(window.products || []), ...(window.goldProducts || [])];
-  return cartArr.map(item => {
-    if (item.name && item.price > 0) return item; // already enriched
-    const pid = item.productId || item.id || item.product_id;
-    const p = allP.find(x => String(x.id) === String(pid));
-    if (!p) return item;
-    return {
-      ...item,
-      name: p.name || item.name || 'Product',
-      price: p.price || 0,
-      oldprice: p.oldprice || p.mrp || 0,
-      img: (p.imgs && p.imgs[0]) || p.img || '',
-      imgs: p.imgs || [],
-      category: p.category || '',
-      brand: p.brand || '',
-    };
-  });
-}
-
-// Override categories-nav-patch ka _getCart
-function _patchCategoryNavCart() {
-  // Intercept _renderCart (used by categories-nav-patch)
-  const origRender = window._renderCart || null;
-
-  // Patch the global _openCartPage to always enrich items first
-  const origOpen = window._openCartPage;
-  if (typeof origOpen === 'function') {
-    window._openCartPage = function () {
-      // Enrich window.cart before rendering
-      if (Array.isArray(window.cart)) {
-        window.cart = _enrichCartItems(window.cart);
-        // Also sync to localStorage
-        try { localStorage.setItem('outfitkart_cart', JSON.stringify(window.cart)); } catch (e) {}
-      }
-      origOpen.apply(this, arguments);
-    };
-  }
-
-  // Also patch _renderCart directly if it exists
-  function _patchRenderCartFn() {
-    // Find the _renderCart in the closure by patching the DOM call
-    const origRenderCart = window._renderCart;
-    if (typeof origRenderCart !== 'function') return;
-    window._renderCart = function () {
-      if (Array.isArray(window.cart)) {
-        window.cart = _enrichCartItems(window.cart);
-      }
-      origRenderCart.apply(this, arguments);
-    };
-  }
-
-  // Delay to ensure categories-nav-patch has initialized
-  setTimeout(_patchRenderCartFn, 800);
-  setTimeout(_patchRenderCartFn, 2000);
-
-  // Also patch the core renderCart (sidebar cart)
-  const origCoreRender = window.renderCart;
-  if (typeof origCoreRender === 'function') {
-    window.renderCart = function () {
-      if (Array.isArray(window.cart)) {
-        window.cart = _enrichCartItems(window.cart);
-      }
-      origCoreRender.apply(this, arguments);
-    };
-  }
-}
-
-/* ────────────────────────────────────────────────────────────────
    2. CATEGORIES SUBCAT IMAGE FIX
    Problem: source.unsplash.com URLs 3 chars return karte hain (dead)
    Fix: Pexels CDN + picsum fallback use karo
@@ -568,22 +494,6 @@ function _fixPoliciesPage() {
 }
 
 /* ────────────────────────────────────────────────────────────────
-   8. CHECKOUT FIX — Items properly show with product data
-   ──────────────────────────────────────────────────────────────── */
-function _fixCheckoutItems() {
-  const origProceed = window.proceedToCheckout;
-  if (typeof origProceed === 'function') {
-    window.proceedToCheckout = function () {
-      // Enrich cart before checkout
-      if (Array.isArray(window.cart)) {
-        window.cart = _enrichCartItems(window.cart);
-      }
-      origProceed.apply(this, arguments);
-    };
-  }
-}
-
-/* ────────────────────────────────────────────────────────────────
    9. BOTTOM NAV — Content chhipne ki problem (padding-bottom fix)
    ──────────────────────────────────────────────────────────────── */
 function _fixBottomNavOverlap() {
@@ -616,38 +526,6 @@ function _fixBottomNavOverlap() {
 }
 
 /* ────────────────────────────────────────────────────────────────
-   10. PRODUCT WATCHER — Cart auto-enrich when products load
-   ──────────────────────────────────────────────────────────────── */
-function _watchProductsAndEnrich() {
-  let enriched = false;
-  const check = setInterval(() => {
-    const allP = [...(window.products || []), ...(window.goldProducts || [])];
-    if (allP.length > 0 && !enriched) {
-      enriched = true;
-      clearInterval(check);
-
-      // Enrich window.cart
-      if (Array.isArray(window.cart) && window.cart.length) {
-        window.cart = _enrichCartItems(window.cart);
-        // Sync to localStorage
-        try { localStorage.setItem('outfitkart_cart', JSON.stringify(window.cart)); } catch (e) {}
-        // Update counts
-        if (typeof window.updateCartCount === 'function') window.updateCartCount();
-      }
-
-      // If cart page is currently open, re-render
-      const cartPage = document.getElementById('view-cart-page');
-      if (cartPage && !cartPage.classList.contains('hidden')) {
-        if (typeof window._renderCart === 'function') window._renderCart();
-      }
-    }
-  }, 300);
-
-  // Stop checking after 15 seconds
-  setTimeout(() => clearInterval(check), 15000);
-}
-
-/* ────────────────────────────────────────────────────────────────
    INIT
    ──────────────────────────────────────────────────────────────── */
 function init() {
@@ -658,13 +536,10 @@ function init() {
   // Wait for DOM + scripts to settle
   setTimeout(() => {
     _patchGetSubcategoryImage();
-    _patchCategoryNavCart();
-    _fixCheckoutItems();
     _fixInfluencerPage();
     _fixPoliciesPage();
     _fixAuthGateForLoggedInUser();
     _fixAdminAnimation();
-    _watchProductsAndEnrich();
 
     // Watch for dynamically added category images
     setTimeout(_watchCatImages, 800);
@@ -682,6 +557,5 @@ if (document.readyState === 'loading') {
 }
 
 // Export useful functions
-window._enrichCartItems = _enrichCartItems;
 
 })();
