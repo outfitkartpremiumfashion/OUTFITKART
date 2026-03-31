@@ -1,615 +1,629 @@
 'use strict';
 /* ================================================================
-   OutfitKart — CATEGORIES NAV PATCH v1.0
+   OutfitKart — CATEGORIES NAV PATCH v3.0
+   Sab categories aur subcats EXACTLY script-core.js se liye hain.
+   Extra kuch nahi dala.
    ================================================================
-   Kya karta hai:
-   1. Bottom nav mein "Shop" → "Categories" icon + label change
-   2. Flipkart-style Categories page inject karta hai:
-      — Left: category sidebar (Men, Women, Accessories, etc.)
-      — Right: us category ke subcategories grid
-   3. Navigate system ke saath fully compatible hai
-   4. Existing kuch bhi nahi tootega
-
-   INDEX.HTML MEIN ADD KARO (giveaway-patch.js ke BAAD):
+   index.html mein (giveaway-patch.js ke BAAD):
      <script src="categories-nav-patch.js"></script>
    ================================================================ */
 
-(function _outfitkartCategoriesNav() {
+(function _okCatPatch() {
 
-  /* ────────────────────────────────────────────────────────────────
-     1. CSS
-  ──────────────────────────────────────────────────────────────── */
-  const style = document.createElement('style');
-  style.id = 'ok-catnav-css';
-  style.textContent = `
+/* ────────────────────────────────────────────────────────────────
+   CSS
+──────────────────────────────────────────────────────────────── */
+(function(){
+  if (document.getElementById('ok-cnp3-css')) return;
+  const s = document.createElement('style');
+  s.id = 'ok-cnp3-css';
+  s.textContent = `
+  /* ═══ CATEGORIES PAGE ═══ */
+  #view-categories{position:fixed;inset:0;z-index:52;background:#f5f5f5;display:flex;flex-direction:column;overflow:hidden;}
+  #view-categories.hidden{display:none!important;}
+  #ok-cph{background:white;height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 6px rgba(0,0,0,.08);flex-shrink:0;}
+  #ok-cph h2{font-size:1.05rem;font-weight:900;color:#111827;margin:0;letter-spacing:-.02em;}
+  #ok-cpbody{display:flex;flex:1;overflow:hidden;}
 
-    /* ── Categories View ── */
-    #view-categories {
-      position: fixed;
-      inset: 0;
-      z-index: 35;
-      background: #f7f7f7;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    #view-categories.hidden { display: none !important; }
+  /* Left sidebar */
+  #ok-csb{width:90px;flex-shrink:0;background:#efefef;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  #ok-csb::-webkit-scrollbar{display:none;}
+  .ok-si{display:flex;flex-direction:column;align-items:center;padding:12px 6px;cursor:pointer;border-left:3px solid transparent;text-align:center;transition:all .15s;gap:5px;}
+  .ok-si.active{background:white;border-left-color:#e11d48;}
+  .ok-si img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;background:#f3f4f6;transition:border-color .15s;}
+  .ok-si.active img{border-color:#e11d48;}
+  .ok-si span{font-size:9.5px;font-weight:700;color:#4b5563;line-height:1.2;word-break:break-word;}
+  .ok-si.active span{color:#e11d48;}
 
-    /* ── Header ── */
-    #ok-catpage-header {
-      background: white;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      border-bottom: 1px solid #e5e7eb;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      flex-shrink: 0;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    #ok-catpage-header h2 {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: #111827;
-      margin: 0;
-      letter-spacing: -0.02em;
-    }
+  /* Right panel */
+  #ok-crp{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:white;padding:10px;}
+  .ok-viewall-btn{display:flex;align-items:center;justify-content:space-between;background:#fff1f2;border:1.5px solid #fecdd3;border-radius:12px;padding:11px 14px;cursor:pointer;margin-bottom:10px;transition:background .15s;}
+  .ok-viewall-btn:active{background:#ffe4e6;}
+  .ok-viewall-btn span{font-size:12px;font-weight:800;color:#e11d48;}
+  .ok-viewall-btn i{color:#e11d48;font-size:11px;}
 
-    /* ── Body: Left sidebar + Right content ── */
-    #ok-catpage-body {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+  /* Group label */
+  .ok-grp-label{font-size:10px;font-weight:800;color:#374151;background:#f9fafb;border-radius:8px;padding:6px 10px;margin:8px 0 6px;border-left:3px solid #e11d48;}
 
-    /* ── Left Sidebar ── */
-    #ok-cat-sidebar {
-      width: 110px;
-      flex-shrink: 0;
-      background: #f0f0f0;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    #ok-cat-sidebar::-webkit-scrollbar { display: none; }
+  /* Subcat grid */
+  .ok-scg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+  .ok-sc{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:7px 3px;border-radius:10px;transition:background .15s;text-align:center;}
+  .ok-sc:active{background:#fff1f2;}
+  .ok-sc img{width:66px;height:74px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;background:#f3f4f6;}
+  .ok-sc span{font-size:9.5px;font-weight:700;color:#1f2937;line-height:1.2;}
 
-    .ok-cat-sidebar-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 14px 8px;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-      text-align: center;
-      transition: background 0.15s, border-color 0.15s;
-      gap: 6px;
-      position: relative;
-    }
-    .ok-cat-sidebar-item:active { background: #e5e5e5; }
-    .ok-cat-sidebar-item.active {
-      background: white;
-      border-left-color: #e11d48;
-    }
-    .ok-cat-sidebar-img {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #e5e7eb;
-      transition: border-color 0.15s;
-    }
-    .ok-cat-sidebar-item.active .ok-cat-sidebar-img {
-      border-color: #e11d48;
-    }
-    .ok-cat-sidebar-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #4b5563;
-      line-height: 1.2;
-      word-break: break-word;
-    }
-    .ok-cat-sidebar-item.active .ok-cat-sidebar-label {
-      color: #e11d48;
-    }
+  /* Ads strip */
+  .ok-ads-strip{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;margin-bottom:10px;}
+  .ok-ads-strip::-webkit-scrollbar{display:none;}
+  .ok-ad-card{flex-shrink:0;width:190px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;cursor:pointer;position:relative;}
+  .ok-ad-card img{width:100%;height:76px;object-fit:cover;display:block;}
+  .ok-ad-badge{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.5);color:white;font-size:7px;font-weight:800;padding:2px 5px;border-radius:99px;letter-spacing:.1em;}
 
-    /* ── Right Content Panel ── */
-    #ok-cat-right {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      background: white;
-      padding: 12px;
-    }
+  /* ═══ CART PAGE ═══ */
+  #view-cart-page{position:fixed;inset:0;z-index:53;background:#f5f5f5;display:flex;flex-direction:column;overflow:hidden;}
+  #view-cart-page.hidden{display:none!important;}
+  #ok-ch{background:white;height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 6px rgba(0,0,0,.08);flex-shrink:0;}
+  #ok-ch h2{font-size:1.05rem;font-weight:900;color:#111827;margin:0;}
+  .ok-chc{font-size:.9rem;font-weight:600;color:#6b7280;margin-left:5px;}
+  #ok-cbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:80px;}
 
-    /* ── Section title in right panel ── */
-    .ok-catright-section-title {
-      font-size: 10px;
-      font-weight: 800;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 4px 0 8px;
-      margin-top: 4px;
-    }
+  /* Address strip */
+  #ok-addr{background:white;padding:12px 16px;border-bottom:1px solid #e5e7eb;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .ok-al{flex:1;min-width:0;}
+  .ok-al-lbl{font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;}
+  .ok-al-main{font-size:13px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+  .ok-al-sub{font-size:11px;color:#6b7280;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ok-addr-chg{font-size:13px;font-weight:800;color:#2563eb;cursor:pointer;flex-shrink:0;background:none;border:none;padding:0;}
 
-    /* ── Subcategory grid ── */
-    .ok-subcat-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+  /* Cart item */
+  .ok-ci{background:white;margin-bottom:8px;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;}
+  .ok-ci-img{width:80px;height:100px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;flex-shrink:0;background:#f3f4f6;}
+  .ok-ci-info{flex:1;min-width:0;}
+  .ok-ci-name{font-size:13px;font-weight:600;color:#111827;line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .ok-ci-meta{font-size:11px;color:#6b7280;margin-bottom:6px;}
+  .ok-ci-pr{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .ok-ci-disc{font-size:12px;font-weight:800;color:#388e3c;}
+  .ok-ci-mrp{font-size:11px;color:#9ca3af;text-decoration:line-through;}
+  .ok-ci-final{font-size:14px;font-weight:900;color:#111827;}
+  .ok-qrow{display:inline-flex;align-items:center;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:10px;}
+  .ok-qbtn{width:30px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#374151;cursor:pointer;background:none;border:none;}
+  .ok-qbtn:active{background:#f3f4f6;}
+  .ok-qnum{width:30px;text-align:center;font-size:13px;font-weight:700;color:#111827;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;height:28px;display:flex;align-items:center;justify-content:center;}
+  .ok-ci-acts{display:flex;border-top:1px solid #e5e7eb;padding-top:10px;}
+  .ok-ci-ab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:700;color:#374151;cursor:pointer;padding:6px 0;background:none;border:none;}
+  .ok-ci-ab:first-child{border-right:1px solid #e5e7eb;}
+  .ok-ci-ab:active{color:#e11d48;}
 
-    /* ── Subcategory card ── */
-    .ok-subcat-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      padding: 8px 4px;
-      border-radius: 10px;
-      transition: background 0.15s;
-      text-align: center;
-    }
-    .ok-subcat-card:active { background: #fff1f2; }
-    .ok-subcat-img {
-      width: 68px;
-      height: 76px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      background: #f3f4f6;
-    }
-    .ok-subcat-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #1f2937;
-      line-height: 1.2;
-    }
+  /* Price summary */
+  #ok-csum{background:white;margin-bottom:8px;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:14px 16px;}
+  #ok-csum h4{font-size:11px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px;}
+  .ok-pr{display:flex;justify-content:space-between;font-size:13px;color:#374151;margin-bottom:8px;}
+  .ok-pr.ok-tot{font-weight:900;color:#111827;font-size:14px;border-top:1px dashed #e5e7eb;padding-top:10px;margin-top:4px;}
+  .ok-savbox{margin-top:10px;background:#e8f5e9;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;color:#388e3c;}
 
-    /* ── "View All" card ── */
-    .ok-subcat-viewall {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fff1f2;
-      border: 1.5px solid #fecdd3;
-      border-radius: 12px;
-      padding: 12px 16px;
-      cursor: pointer;
-      margin-bottom: 12px;
-      transition: background 0.15s;
-    }
-    .ok-subcat-viewall:active { background: #ffe4e6; }
-    .ok-subcat-viewall span {
-      font-size: 13px;
-      font-weight: 800;
-      color: #e11d48;
-    }
-    .ok-subcat-viewall i { color: #e11d48; font-size: 14px; }
+  /* Empty cart */
+  #ok-cempty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;}
+  #ok-cempty i{font-size:64px;color:#e5e7eb;margin-bottom:16px;display:block;}
+  #ok-cempty h3{font-size:1.1rem;font-weight:800;color:#374151;margin:0 0 6px;}
+  #ok-cempty p{font-size:13px;color:#9ca3af;margin:0 0 20px;}
+  #ok-cempty button{background:#2874f0;color:white;font-size:13px;font-weight:800;padding:12px 28px;border-radius:4px;border:none;cursor:pointer;}
 
-    /* ── Bottom nav active state for categories ── */
-    #ok-nav-categories.ok-nav-active {
-      color: #e11d48 !important;
-    }
-    #ok-nav-categories.ok-nav-active i {
-      transform: scale(1.1);
-    }
+  /* Bottom bar */
+  #ok-cbar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;z-index:60;box-shadow:0 -4px 16px rgba(0,0,0,.08);}
+  #ok-cbar.hidden{display:none!important;}
+  .ok-bamt{display:block;font-size:18px;font-weight:900;color:#111827;}
+  .ok-bsav{font-size:10px;color:#388e3c;font-weight:700;}
+  #ok-cpbtn{background:#2874f0;color:white;font-size:14px;font-weight:900;padding:12px 24px;border-radius:4px;border:none;cursor:pointer;}
+  #ok-cpbtn:active{background:#1a5ecf;}
+
+  #ok-nav-categories.ok-nav-active{color:#e11d48!important;}
   `;
-  document.head.appendChild(style);
+  document.head.appendChild(s);
+})();
 
 
-  /* ────────────────────────────────────────────────────────────────
-     2. CATEGORY DATA
-     — Yahan OutfitKart ki categories aur unki subcategories hain
-     — Script automatically products se bhi detect karta hai
-  ──────────────────────────────────────────────────────────────── */
-  const CAT_CONFIG = [
-    {
-      name: 'Men',
-      img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'T-Shirts',   img: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=150&h=180&fit=crop&q=80' },
-        { name: 'Shirts',     img: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=150&h=180&fit=crop&q=80' },
-        { name: 'Jeans',      img: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=150&h=180&fit=crop&q=80' },
-        { name: 'Trousers',   img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=150&h=180&fit=crop&q=80' },
-        { name: 'Jackets',    img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=150&h=180&fit=crop&q=80' },
-        { name: 'Kurtas',     img: 'https://images.unsplash.com/photo-1604969095725-00c7b4d45fdf?w=150&h=180&fit=crop&q=80' },
-        { name: 'Shorts',     img: 'https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=150&h=180&fit=crop&q=80' },
-        { name: 'Sneakers',   img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&h=180&fit=crop&q=80' },
-        { name: 'Hoodies',    img: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
-    {
-      name: 'Women',
-      img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'Kurtis',     img: 'https://images.unsplash.com/photo-1610189352649-ff58ea8ffe71?w=150&h=180&fit=crop&q=80' },
-        { name: 'Sarees',     img: 'https://images.unsplash.com/photo-1641944503168-2dec6ada8e5e?w=150&h=180&fit=crop&q=80' },
-        { name: 'Dresses',    img: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=150&h=180&fit=crop&q=80' },
-        { name: 'Tops',       img: 'https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=150&h=180&fit=crop&q=80' },
-        { name: 'Lehengas',   img: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=150&h=180&fit=crop&q=80' },
-        { name: 'Jeans',      img: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=150&h=180&fit=crop&q=80' },
-        { name: 'Suits',      img: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=150&h=180&fit=crop&q=80' },
-        { name: 'Jackets',    img: 'https://images.unsplash.com/photo-1548624313-0396c75e4b1a?w=150&h=180&fit=crop&q=80' },
-        { name: 'Heels',      img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
-    {
-      name: 'Accessories',
-      img: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'Watches',    img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&h=180&fit=crop&q=80' },
-        { name: 'Belts',      img: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=150&h=180&fit=crop&q=80' },
-        { name: 'Wallets',    img: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=150&h=180&fit=crop&q=80' },
-        { name: 'Bags',       img: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=150&h=180&fit=crop&q=80' },
-        { name: 'Sunglasses', img: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=150&h=180&fit=crop&q=80' },
-        { name: 'Jewellery',  img: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
-    {
-      name: 'Footwear',
-      img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'Sneakers',   img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&h=180&fit=crop&q=80' },
-        { name: 'Sandals',    img: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=150&h=180&fit=crop&q=80' },
-        { name: 'Boots',      img: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=150&h=180&fit=crop&q=80' },
-        { name: 'Loafers',    img: 'https://images.unsplash.com/photo-1582588678413-dbf45f4823e9?w=150&h=180&fit=crop&q=80' },
-        { name: 'Heels',      img: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=150&h=180&fit=crop&q=80' },
-        { name: 'Slippers',   img: 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
-    {
-      name: 'Combos 🎁',
-      img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'Men Combos',    img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=150&h=180&fit=crop&q=80' },
-        { name: 'Women Combos',  img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=150&h=180&fit=crop&q=80' },
-        { name: 'Couple Sets',   img: 'https://images.unsplash.com/photo-1529111290557-82f6d5c6cf85?w=150&h=180&fit=crop&q=80' },
-        { name: 'Gift Sets',     img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
-    {
-      name: 'Perfumes ✨',
-      img: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'Men Perfumes',    img: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=150&h=180&fit=crop&q=80' },
-        { name: 'Women Perfumes',  img: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=200&h=200&fit=crop&q=80' },
-        { name: 'Attars',          img: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=150&h=180&fit=crop&q=80' },
-        { name: 'Gift Sets',       img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
-    {
-      name: '⭐ Gold',
-      img: 'https://images.unsplash.com/photo-1605902711622-cfb43c4437d1?w=200&h=200&fit=crop&q=80',
-      subcats: [
-        { name: 'Men Gold',    img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=150&h=180&fit=crop&q=80' },
-        { name: 'Women Gold',  img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=150&h=180&fit=crop&q=80' },
-        { name: 'Luxury Sets', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=150&h=180&fit=crop&q=80' },
-      ]
-    },
+/* ────────────────────────────────────────────────────────────────
+   EXACT DATA FROM script-core.js CATEGORIES array
+──────────────────────────────────────────────────────────────── */
+const CATS = [
+  {
+    key: 'Men', label: 'Men',
+    photo: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=120&h=120&fit=crop&q=80',
+    groups: [
+      { label: '👕 Topwear',     subs: ['T-Shirts','Casual Shirts','Formal Shirts','Oversized Tees','Oversized Shirts','Hoodies','Denim Jacket'] },
+      { label: '👖 Bottomwear',  subs: ['Baggy Jeans','Straight Fit Jeans','Slim Fit Jeans','Cotton Trousers','Joggers','Cargo Pants','Formal Pant','Trousers'] },
+      { label: '👟 Footwear',    subs: ['Sneakers','Formal Shoes','Sports Shoes','Sandals','Slippers'] },
+      { label: '🎁 Full Combos', subs: ['Formal Combo (Shirt+Trouser+Belt+Tie)','Casual Combo (Tee+Baggy Jeans+Locket)','Streetwear Combo (Oversized Tee+Cargo+Chain)','Tracksuit (Full Upper & Lower)','Ethnic Combo (Kurta+Pant+Dupatta)','Sherwani Set (Sherwani+Pant+Dupatta)','Nehru Jacket Combo'] },
+    ]
+  },
+  {
+    key: 'Women', label: 'Women',
+    photo: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=120&h=120&fit=crop&q=80',
+    groups: [
+      { label: '🥻 Ethnic',      subs: ['Sarees','Kurtis','Lehengas'] },
+      { label: '👖 Bottomwear',  subs: ['Straight Fit Jeans','Trousers','Baggy Jeans','Cargo Jeans','Skinny Fit Jeans','Slim Fit Jeans'] },
+      { label: '👗 Western',     subs: ['Tops','Palazzo','Tops & Tunics','Dresses','Skirts'] },
+      { label: '👠 Footwear',    subs: ['Heels','Flats','Sandals','Sneakers','Wedges'] },
+      { label: '🎁 Full Combos', subs: ['Ethnic Set (Kurti+Pant+Dupatta)','Western Combo (Top+Straight Jeans+Belt)','Party Combo (Saree+Blouse+Belt)','Indo-Western (Top+Palazzo+Shrug)'] },
+    ]
+  },
+  {
+    key: 'Perfumes', label: 'Perfumes',
+    photo: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=120&h=120&fit=crop&q=80',
+    groups: [
+      { label: '🌸 For Her',  subs: ["Women's Perfume","Body Mist","Gift Set"] },
+      { label: '💼 For Him',  subs: ["Men's Perfume","Attar / Ittar","Deodorant Spray"] },
+      { label: '✨ Unisex',   subs: ["Unisex Perfume","Luxury Perfume","Budget Perfume"] },
+    ]
+  },
+  {
+    key: 'Combos', label: 'Combos 🎁',
+    photo: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=120&h=120&fit=crop&q=80',
+    groups: [
+      { label: '👕 Men Combos',    subs: ['Casual Combo','Party Wear Combo','Gym Combo','Streetwear Combo','Office Combo'] },
+      { label: '👗 Women Combos',  subs: ['Casual Outfit Combo','Party Combo','Ethnic Combo','Western Combo','College Wear Combo'] },
+      { label: '👫 Unisex Combos', subs: ['Couple Combo','Best Friend Combo','Matching Outfit Combo'] },
+    ]
+  },
+  {
+    key: 'Accessories', label: 'Accessories',
+    photo: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=120&h=120&fit=crop&q=80',
+    groups: [
+      { label: "👨 Men's Accessories",   subs: ['Sunglasses','Watches','Wallets','Bags','Belts','Caps','Chains','Bracelets','Socks'] },
+      { label: "👩 Women's Accessories", subs: ['Handbags','Clutches','Earrings','Necklace Sets','Bangles','Bracelets','Hair Accessories','Scrunchies','Socks','Belts'] },
+      { label: '✨ Unisex & Tech',       subs: ['Unisex Sunglasses','Earbuds','Power Banks','Phone Cases','Backpacks'] },
+    ]
+  },
+  {
+    key: 'Gold', label: '⭐ Gold',
+    photo: 'https://images.unsplash.com/photo-1605902711622-cfb43c4437d1?w=120&h=120&fit=crop&q=80',
+    groups: [
+      { label: '👔 Men Gold',   subs: ['Topwear','Bottomwear','Footwear'] },
+      { label: '👗 Women Gold', subs: ['Topwear','Bottomwear','Footwear'] },
+    ]
+  },
+];
+
+/* Subcat image lookup from loaded products */
+function _subImg(catKey, subName) {
+  const isGold = catKey === 'Gold';
+  const pools = [
+    ...(window.products || []),
+    ...(window.allProducts || []),
+    ...(window._allProducts || []),
+    ...(isGold ? (window.goldProducts || window.allGoldProducts || []) : []),
   ];
-
-  let _activeCatIndex = 0;
-
-
-  /* ────────────────────────────────────────────────────────────────
-     3. BUILD THE CATEGORIES PAGE
-  ──────────────────────────────────────────────────────────────── */
-  function _buildCatPage() {
-    if (document.getElementById('view-categories')) return;
-
-    const page = document.createElement('div');
-    page.id = 'view-categories';
-    page.className = 'hidden';
-    page.innerHTML = `
-      <!-- Header -->
-      <div id="ok-catpage-header">
-        <h2>Categories</h2>
-      </div>
-
-      <!-- Body -->
-      <div id="ok-catpage-body">
-        <!-- Left Sidebar -->
-        <div id="ok-cat-sidebar">
-          ${CAT_CONFIG.map((cat, i) => `
-            <div class="ok-cat-sidebar-item ${i === 0 ? 'active' : ''}"
-                 onclick="_okSelectCategory(${i})"
-                 data-cat-index="${i}">
-              <img class="ok-cat-sidebar-img"
-                   src="${cat.img}"
-                   alt="${cat.name}"
-                   onerror="this.src='https://placehold.co/52x52/f3f4f6/9ca3af?text=${encodeURIComponent(cat.name.charAt(0))}'">
-              <span class="ok-cat-sidebar-label">${cat.name}</span>
-            </div>
-          `).join('')}
-        </div>
-
-        <!-- Right Panel -->
-        <div id="ok-cat-right">
-          <!-- Filled dynamically -->
-        </div>
-      </div>
-    `;
-
-    // main content ke andar ya body ke andar add karo
-    const main = document.getElementById('app-content') || document.querySelector('main') || document.body;
-    main.appendChild(page);
-
-    // Pehli category render karo
-    _renderRightPanel(0);
+  for (const p of pools) {
+    const pcat = (p.category || p.cat || '').trim();
+    const psub = (p.subcategory || p.subcat || p.sub_category || p.sub || '').trim();
+    const catMatch = isGold
+      ? (p.is_gold || p.gold || pcat.toLowerCase() === 'gold')
+      : pcat.toLowerCase() === catKey.toLowerCase();
+    if (catMatch && psub.toLowerCase() === subName.toLowerCase()) {
+      return (p.imgs && p.imgs[0]) || p.img || p.image || '';
+    }
   }
+  return '';
+}
+
+/* Shorten long subcat names for display */
+const SUB_DISPLAY = {
+  'Formal Combo (Shirt+Trouser+Belt+Tie)':'Formal Combo',
+  'Casual Combo (Tee+Baggy Jeans+Locket)':'Casual Combo',
+  'Streetwear Combo (Oversized Tee+Cargo+Chain)':'Streetwear Combo',
+  'Tracksuit (Full Upper & Lower)':'Tracksuit',
+  'Ethnic Combo (Kurta+Pant+Dupatta)':'Ethnic Combo',
+  'Sherwani Set (Sherwani+Pant+Dupatta)':'Sherwani Set',
+  'Ethnic Set (Kurti+Pant+Dupatta)':'Ethnic Set',
+  'Western Combo (Top+Straight Jeans+Belt)':'Western Combo',
+  'Party Combo (Saree+Blouse+Belt)':'Party Combo',
+  'Indo-Western (Top+Palazzo+Shrug)':'Indo-Western',
+  'Nehru Jacket Combo':'Nehru Jacket',
+  'Ethnic Combo':'Ethnic Combo',
+};
+function _disp(name) { return SUB_DISPLAY[name] || name; }
+
+/* Placeholder color per group */
+const GP_COLORS = ['f3e8ff','fff0f0','e8f4ff','f0fff4','fffbe8','fce8ff','e8f0ff'];
+
+let _activeCat = 0;
 
 
-  /* ────────────────────────────────────────────────────────────────
-     4. RENDER RIGHT PANEL FOR SELECTED CATEGORY
-  ──────────────────────────────────────────────────────────────── */
-  window._okSelectCategory = function(index) {
-    _activeCatIndex = index;
-    const cat = CAT_CONFIG[index];
-    if (!cat) return;
+/* ────────────────────────────────────────────────────────────────
+   BUILD CATEGORIES PAGE
+──────────────────────────────────────────────────────────────── */
+function _buildCatPage() {
+  if (document.getElementById('view-categories')) return;
+  const page = document.createElement('div');
+  page.id = 'view-categories';
+  page.className = 'hidden';
+  page.innerHTML = `
+    <div id="ok-cph"><h2>Categories</h2></div>
+    <div id="ok-cpbody">
+      <div id="ok-csb">
+        ${CATS.map((c, i) => `
+          <div class="ok-si ${i===0?'active':''}" onclick="_okCatSel(${i})" data-ci="${i}">
+            <img src="${c.photo}" alt="${c.label}"
+              onerror="this.src='https://placehold.co/48x48/f3f4f6/9ca3af?text=${encodeURIComponent(c.label[0])}'">
+            <span>${c.label}</span>
+          </div>`).join('')}
+      </div>
+      <div id="ok-crp"></div>
+    </div>`;
+  (document.getElementById('app-content') || document.querySelector('main') || document.body).appendChild(page);
+  _renderRight(0);
+}
 
-    // Sidebar active state update karo
-    document.querySelectorAll('.ok-cat-sidebar-item').forEach((el, i) => {
-      el.classList.toggle('active', i === index);
-    });
+window._okCatSel = function(i) {
+  _activeCat = i;
+  document.querySelectorAll('.ok-si').forEach((el, j) => el.classList.toggle('active', j === i));
+  document.querySelector(`.ok-si[data-ci="${i}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  _renderRight(i);
+};
 
-    // Scroll sidebar item into view
-    const activeItem = document.querySelector(`.ok-cat-sidebar-item[data-cat-index="${index}"]`);
-    if (activeItem) activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+function _renderRight(i) {
+  const right = document.getElementById('ok-crp');
+  if (!right) return;
+  const cat = CATS[i];
+  if (!cat) return;
 
-    _renderRightPanel(index);
-  };
+  const isGold = cat.key === 'Gold';
 
-  function _renderRightPanel(index) {
-    const right = document.getElementById('ok-cat-right');
-    if (!right) return;
-    const cat = CAT_CONFIG[index];
-    if (!cat) return;
+  // Ads from mega-patch
+  const ads = (window._okAdsData || []).filter(a => a.active && (a.position === 'all' || a.position === 'home' || a.position === 'categories'));
+  const adsHtml = ads.length ? `<div class="ok-ads-strip">${ads.slice(0,4).map(ad => `
+    <div class="ok-ad-card" onclick="${ad.link_url ? `window.open('${ad.link_url}','_blank')` : ''}">
+      <img src="${ad.image_url||''}" alt="${ad.title||'Ad'}" onerror="this.parentElement.style.display='none'">
+      ${ad.badge ? `<div class="ok-ad-badge">${ad.badge}</div>` : ''}
+    </div>`).join('')}</div>` : '';
 
-    // Gold category → navigate to gold view
-    const isGold = cat.name.includes('Gold');
+  // View All button
+  const viewAllAct = isGold
+    ? `navigate('gold');_closeCategories();`
+    : `openCategoryPage('${cat.key}');_closeCategories();`;
+  const cleanLabel = cat.label.replace(/[^\w\s]/g, '').trim();
 
-    // "View All" button
-    const catNameClean = cat.name.replace(/[^a-zA-Z]/g, '').trim() || cat.name;
-    const viewAllAction = isGold
-      ? `navigate('gold')`
-      : `openCategoryPage('${catNameClean}')`;
+  // Groups + subcats
+  let groupsHtml = '';
+  cat.groups.forEach((grp, gi) => {
+    const cardsHtml = grp.subs.map(sub => {
+      const img = _subImg(cat.key, sub);
+      const dispName = _disp(sub);
+      const bgColor = GP_COLORS[gi % GP_COLORS.length];
+      const imgSrc = img
+        ? img
+        : `https://placehold.co/66x74/${bgColor}/374151?text=${encodeURIComponent(dispName.slice(0,3))}`;
 
-    const subcatHTML = cat.subcats.map(sub => {
-      // Subcategory click action determine karo
-      const subAction = isGold
-        ? `navigate('gold')`
-        : `openSubcatProducts('${catNameClean}', '${sub.name.replace(/'/g, "\\'")}')`;
+      const clickAct = isGold
+        ? `navigate('gold');_closeCategories();`
+        : `openSubcatProducts('${cat.key}','${sub.replace(/'/g, "\\'")}');_closeCategories();`;
 
-      return `
-        <div class="ok-subcat-card" onclick="${subAction}; _closeCategories();">
-          <img class="ok-subcat-img"
-               src="${sub.img}"
-               alt="${sub.name}"
-               loading="lazy"
-               onerror="this.src='https://placehold.co/68x76/f3f4f6/9ca3af?text=${encodeURIComponent(sub.name.charAt(0))}'">
-          <span class="ok-subcat-label">${sub.name}</span>
-        </div>
-      `;
+      return `<div class="ok-sc" onclick="${clickAct}">
+        <img src="${imgSrc}" alt="${dispName}" loading="lazy"
+          onerror="this.src='https://placehold.co/66x74/${bgColor}/374151?text=${encodeURIComponent(dispName.slice(0,3))}'">
+        <span>${dispName}</span>
+      </div>`;
     }).join('');
 
-    right.innerHTML = `
-      <div class="ok-subcat-viewall" onclick="${viewAllAction}; _closeCategories();">
-        <span><i class="fas fa-th-large mr-2"></i>View All ${cat.name}</span>
-        <i class="fas fa-chevron-right"></i>
+    groupsHtml += `
+      <div class="ok-grp-label">${grp.label}</div>
+      <div class="ok-scg">${cardsHtml}</div>`;
+  });
+
+  right.innerHTML = `
+    ${adsHtml}
+    <div class="ok-viewall-btn" onclick="${viewAllAct}">
+      <span><i class="fas fa-th-large" style="margin-right:6px;"></i>View All ${cleanLabel}</span>
+      <i class="fas fa-chevron-right"></i>
+    </div>
+    ${groupsHtml}`;
+  right.scrollTop = 0;
+}
+
+window._openCategories = function() {
+  document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+  document.getElementById('view-cart-page')?.classList.add('hidden');
+  document.getElementById('view-categories')?.classList.remove('hidden');
+  _navActive(true);
+  window.currentView = 'categories';
+};
+window._closeCategories = function() {
+  document.getElementById('view-categories')?.classList.add('hidden');
+};
+
+
+/* ────────────────────────────────────────────────────────────────
+   CART PAGE (Flipkart style)
+──────────────────────────────────────────────────────────────── */
+function _buildCartPage() {
+  if (document.getElementById('view-cart-page')) return;
+  const page = document.createElement('div');
+  page.id = 'view-cart-page';
+  page.className = 'hidden';
+  page.innerHTML = `
+    <div id="ok-ch"><h2>My Cart<span class="ok-chc" id="ok-chc"></span></h2></div>
+    <div id="ok-cbody">
+      <div id="ok-addr">
+        <div class="ok-al">
+          <div class="ok-al-lbl">Deliver to</div>
+          <div class="ok-al-main" id="ok-al-main">Select address</div>
+          <div class="ok-al-sub" id="ok-al-sub"></div>
+        </div>
+        <button class="ok-addr-chg" onclick="_closeCartPage();proceedToCheckout&&proceedToCheckout()">Change</button>
       </div>
-
-      <div class="ok-catright-section-title">Browse ${cat.name}</div>
-
-      <div class="ok-subcat-grid">
-        ${subcatHTML}
+      <div id="ok-citems"></div>
+      <div id="ok-csum" class="hidden">
+        <h4>Price Details</h4>
+        <div class="ok-pr"><span id="ok-ps-lbl">Price (0 items)</span><span id="ok-ps-mrp">₹0</span></div>
+        <div class="ok-pr" id="ok-ps-dr"><span>Discount</span><span style="color:#388e3c;font-weight:800;" id="ok-ps-d">-₹0</span></div>
+        <div class="ok-pr ok-tot"><span>Total Amount</span><span id="ok-ps-tot">₹0</span></div>
+        <div class="ok-savbox">🎉 You will save <span id="ok-ps-sv">₹0</span> on this order</div>
       </div>
-    `;
+      <div id="ok-cempty" class="hidden">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>Your cart is empty!</h3>
+        <p>Add items to get started</p>
+        <button onclick="_closeCartPage();navigate('home')">Shop Now</button>
+      </div>
+    </div>
+    <div id="ok-cbar" class="hidden">
+      <div>
+        <span class="ok-bamt" id="ok-bamt">₹0</span>
+        <span class="ok-bsav" id="ok-bsav"></span>
+      </div>
+      <button id="ok-cpbtn" onclick="_closeCartPage();proceedToCheckout&&proceedToCheckout()">PLACE ORDER</button>
+    </div>`;
+  (document.getElementById('app-content') || document.querySelector('main') || document.body).appendChild(page);
+}
 
-    // Right panel ko top pe scroll karo
-    right.scrollTop = 0;
+function _getCart() {
+  const keys = ['outfitkart_cart','ok_cart','cart'];
+  for (const k of keys) {
+    try { const r = localStorage.getItem(k); if (r) { const p = JSON.parse(r); if (Array.isArray(p) && p.length) return p; } } catch {}
+  }
+  return Array.isArray(window.cart) && window.cart.length ? [...window.cart] : [];
+}
+function _saveCart(c) {
+  try { localStorage.setItem('outfitkart_cart', JSON.stringify(c)); } catch {}
+  try { localStorage.setItem('ok_cart', JSON.stringify(c)); } catch {}
+  window.cart = c;
+  window.cartItems = c;
+}
+function _getUser() {
+  const keys = ['outfitkart_user','ok_user','user_data','currentUser','outfitkart_session'];
+  for (const k of keys) {
+    try { const r = localStorage.getItem(k); if (r) { const u = JSON.parse(r); if (u && (u.name||u.mobile)) return u; } } catch {}
+  }
+  return window.currentUser || null;
+}
+
+window._openCartPage = function() {
+  document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+  document.getElementById('view-categories')?.classList.add('hidden');
+  const sb = document.getElementById('cart-sidebar');
+  if (sb) sb.style.transform = 'translateX(100%)';
+  document.getElementById('cart-overlay')?.classList.add('hidden');
+  document.getElementById('view-cart-page')?.classList.remove('hidden');
+  window.currentView = 'cart';
+  _navActive(false);
+  _renderCart();
+};
+window._closeCartPage = function() {
+  document.getElementById('view-cart-page')?.classList.add('hidden');
+};
+
+function _renderCart() {
+  const cart = _getCart();
+  const citems = document.getElementById('ok-citems');
+  const empty  = document.getElementById('ok-cempty');
+  const csum   = document.getElementById('ok-csum');
+  const cbar   = document.getElementById('ok-cbar');
+  const chc    = document.getElementById('ok-chc');
+  if (!citems) return;
+
+  // Address
+  const u = _getUser();
+  const m = document.getElementById('ok-al-main');
+  const sb2 = document.getElementById('ok-al-sub');
+  if (m) {
+    if (u && (u.name || u.full_name)) {
+      const city = u.city || '', pin = u.pincode || '';
+      m.textContent = `${u.name || u.full_name}${city ? ', ' + city : ''}${pin ? ' ' + pin : ''}`;
+      if (sb2) sb2.textContent = u.road || u.house || u.address || '';
+    } else {
+      m.textContent = 'Select delivery address';
+      if (sb2) sb2.textContent = '';
+    }
   }
 
+  if (!cart.length) {
+    citems.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    if (csum) csum.classList.add('hidden');
+    if (cbar) cbar.classList.add('hidden');
+    if (chc) chc.textContent = '';
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  if (csum) csum.classList.remove('hidden');
+  if (cbar) cbar.classList.remove('hidden');
+  if (chc) chc.textContent = ` (${cart.length})`;
 
-  /* ────────────────────────────────────────────────────────────────
-     5. OPEN / CLOSE CATEGORIES VIEW
-  ──────────────────────────────────────────────────────────────── */
-  window._openCategories = function() {
-    // Saari dusri views hide karo
-    document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+  let mrpT = 0, finT = 0;
+  citems.innerHTML = cart.map((item, idx) => {
+    const img  = item.img || (item.imgs && item.imgs[0]) || 'https://placehold.co/80x100/f3f4f6/9ca3af?text=?';
+    const name = item.name || 'Product';
+    const size = item.size || item.selectedSize || '';
+    const qty  = item.qty || item.quantity || 1;
+    const pr   = item.price || 0;
+    const op   = item.oldprice || item.mrp || Math.round(pr * 1.4);
+    const disc = op > pr ? Math.round(((op - pr) / op) * 100) : 0;
+    const fin  = pr * qty;
+    const mrp  = op * qty;
+    mrpT += mrp; finT += fin;
+    return `<div class="ok-ci">
+      <img class="ok-ci-img" src="${img}" alt="${name}" onerror="this.src='https://placehold.co/80x100/f3f4f6/9ca3af?text=?'">
+      <div class="ok-ci-info">
+        <div class="ok-ci-name">${name}</div>
+        <div class="ok-ci-meta">${size ? 'Size: ' + size + ' · ' : ''}Seller: OutfitKart</div>
+        <div class="ok-ci-pr">
+          ${disc > 0 ? `<span class="ok-ci-disc">${disc}% off</span>` : ''}
+          ${op > pr ? `<span class="ok-ci-mrp">₹${op.toLocaleString('en-IN')}</span>` : ''}
+          <span class="ok-ci-final">₹${fin.toLocaleString('en-IN')}</span>
+        </div>
+        <div class="ok-qrow">
+          <button class="ok-qbtn" onclick="_okQ(${idx},-1)">−</button>
+          <span class="ok-qnum">${qty}</span>
+          <button class="ok-qbtn" onclick="_okQ(${idx},1)">+</button>
+        </div>
+        <div class="ok-ci-acts">
+          <button class="ok-ci-ab" onclick="_okR(${idx})"><i class="fas fa-trash-alt" style="font-size:10px;"></i> REMOVE</button>
+          <button class="ok-ci-ab" onclick="_closeCartPage();navigate('profile','wishlist')"><i class="far fa-heart" style="font-size:10px;"></i> SAVE FOR LATER</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 
-    const catView = document.getElementById('view-categories');
-    if (catView) {
-      catView.classList.remove('hidden');
-    }
+  const saved = mrpT - finT;
+  const _e = id => document.getElementById(id);
+  if (_e('ok-ps-lbl')) _e('ok-ps-lbl').textContent = `Price (${cart.length} item${cart.length > 1 ? 's' : ''})`;
+  if (_e('ok-ps-mrp')) _e('ok-ps-mrp').textContent = `₹${mrpT.toLocaleString('en-IN')}`;
+  if (_e('ok-ps-d'))   _e('ok-ps-d').textContent   = `-₹${saved.toLocaleString('en-IN')}`;
+  if (_e('ok-ps-dr'))  _e('ok-ps-dr').style.display = saved > 0 ? 'flex' : 'none';
+  if (_e('ok-ps-tot')) _e('ok-ps-tot').textContent  = `₹${finT.toLocaleString('en-IN')}`;
+  if (_e('ok-ps-sv'))  _e('ok-ps-sv').textContent   = `₹${saved.toLocaleString('en-IN')}`;
+  if (_e('ok-bamt'))   _e('ok-bamt').textContent    = `₹${finT.toLocaleString('en-IN')}`;
+  if (_e('ok-bsav') && saved > 0) _e('ok-bsav').textContent = `You save ₹${saved.toLocaleString('en-IN')}`;
+}
 
-    // Bottom nav active state
-    _updateCatNavActive(true);
+window._okQ = function(idx, d) {
+  const c = _getCart();
+  if (!c[idx]) return;
+  c[idx].qty = Math.max(1, (c[idx].qty || c[idx].quantity || 1) + d);
+  c[idx].quantity = c[idx].qty;
+  _saveCart(c);
+  _renderCart();
+  typeof updateCartCount === 'function' && updateCartCount();
+  typeof renderCart === 'function' && renderCart();
+};
+window._okR = function(idx) {
+  const c = _getCart();
+  c.splice(idx, 1);
+  _saveCart(c);
+  _renderCart();
+  typeof updateCartCount === 'function' && updateCartCount();
+  typeof renderCart === 'function' && renderCart();
+};
 
-    window.currentView = 'categories';
+
+/* ────────────────────────────────────────────────────────────────
+   BOTTOM NAV PATCH
+──────────────────────────────────────────────────────────────── */
+function _patchNav() {
+  const nav = document.querySelector('nav.fixed.bottom-0');
+  if (!nav) { setTimeout(_patchNav, 400); return; }
+
+  // Shop → Categories
+  let shopEl = null;
+  nav.querySelectorAll('[onclick]').forEach(el => {
+    const oc = el.getAttribute('onclick') || '';
+    if (oc.includes("navigate('shop')") && !oc.includes('gold') && !oc.includes('cart') && !oc.includes('profile') && !oc.includes('home')) shopEl = el;
+  });
+  if (!shopEl) nav.querySelectorAll('span').forEach(sp => {
+    if (!shopEl && sp.textContent.trim().toLowerCase() === 'shop') shopEl = sp.closest('[onclick]');
+  });
+  if (shopEl) {
+    shopEl.id = 'ok-nav-categories';
+    shopEl.setAttribute('onclick', '_openCategories()');
+    const ic = shopEl.querySelector('i'); if (ic) ic.className = 'fas fa-th-large text-lg';
+    shopEl.querySelectorAll('span').forEach(sp => { if (sp.textContent.trim().toLowerCase() === 'shop') sp.textContent = 'Categories'; });
+  }
+
+  // Cart nav → cart page
+  nav.querySelectorAll('[onclick]').forEach(el => {
+    const oc = el.getAttribute('onclick') || '';
+    if (oc.includes('toggleCart()') || oc.includes("navigate('cart')")) el.setAttribute('onclick', '_openCartPage()');
+  });
+  console.log('[CatPatch v3] ✅ Nav patched');
+}
+
+// Override toggleCart globally
+function _patchToggleCart() {
+  if (window._okTogglePatched) return;
+  window._okTogglePatched = true;
+  window.toggleCart = function() {
+    const cp = document.getElementById('view-cart-page');
+    if (cp && !cp.classList.contains('hidden')) _closeCartPage();
+    else _openCartPage();
   };
+  // Patch any onclick="toggleCart()" in header
+  document.querySelectorAll('[onclick*="toggleCart"]').forEach(el => {
+    if (!el.closest('nav.fixed.bottom-0')) el.setAttribute('onclick', '_openCartPage()');
+  });
+}
 
-  window._closeCategories = function() {
-    const catView = document.getElementById('view-categories');
-    if (catView) catView.classList.add('hidden');
+function _navActive(on) {
+  const btn = document.getElementById('ok-nav-categories');
+  if (btn) btn.style.color = on ? '#e11d48' : '';
+}
+
+
+/* ────────────────────────────────────────────────────────────────
+   NAVIGATE PATCH
+──────────────────────────────────────────────────────────────── */
+function _patchNavigate() {
+  if (window._cnp3NavDone) return;
+  if (!window.navigate) return;
+  window._cnp3NavDone = true;
+  const orig = window.navigate;
+  window.navigate = function(view, ...args) {
+    if (view !== 'categories') { _closeCategories(); _navActive(false); }
+    if (view !== 'cart') _closeCartPage();
+    return orig(view, ...args);
   };
+}
 
-
-  /* ────────────────────────────────────────────────────────────────
-     6. BOTTOM NAV — "Shop" → "Categories"
-  ──────────────────────────────────────────────────────────────── */
-  function _patchBottomNav() {
-    const nav = document.querySelector('nav.fixed.bottom-0');
-    if (!nav) { setTimeout(_patchBottomNav, 300); return; }
-
-    // Shop nav item dhundo
-    const navItems = nav.querySelectorAll('[onclick]');
-    let shopItem = null;
-
-    navItems.forEach(el => {
-      const oc = el.getAttribute('onclick') || '';
-      if (oc.includes("navigate('shop')") && !oc.includes('gold') && !oc.includes('cart') && !oc.includes('profile') && !oc.includes('home')) {
-        shopItem = el;
-      }
-    });
-
-    if (!shopItem) {
-      // Fallback: text se dhundo
-      navItems.forEach(el => {
-        if (el.textContent && el.textContent.trim().toLowerCase().includes('shop')) {
-          shopItem = el;
-        }
-      });
+/* Re-render right when products/ads load (for real images) */
+function _watchData() {
+  let att = 0;
+  const iv = setInterval(() => {
+    att++;
+    const hasP = (window.products || window.allProducts || []).length > 0;
+    const hasA = !!window._okAdsData;
+    if (hasP || hasA || att > 30) {
+      clearInterval(iv);
+      _renderRight(_activeCat);
     }
-
-    if (shopItem) {
-      // ID add karo
-      shopItem.id = 'ok-nav-categories';
-      // Click handler change karo
-      shopItem.setAttribute('onclick', '_openCategories()');
-      // Icon change karo (fa-tshirt → fa-th-large)
-      const icon = shopItem.querySelector('i');
-      if (icon) {
-        icon.className = 'fas fa-th-large text-lg';
-      }
-      // Label change karo
-      const spans = shopItem.querySelectorAll('span');
-      spans.forEach(sp => {
-        if (sp.textContent.trim().toLowerCase() === 'shop') {
-          sp.textContent = 'Categories';
-        }
-      });
-      console.log('[CatNavPatch] ✅ Bottom nav: Shop → Categories done');
-    } else {
-      console.warn('[CatNavPatch] ⚠️ Shop nav item nahi mila, manual inject kar raha hoon...');
-      _injectCatNavItem(nav);
-    }
-  }
-
-  function _injectCatNavItem(nav) {
-    // Agar shop item nahi mila toh manually doosra item add karo
-    // (yeh fallback hai)
-    const existing = document.getElementById('ok-nav-categories');
-    if (existing) return;
-    const div = document.createElement('div');
-    div.id = 'ok-nav-categories';
-    div.className = 'flex flex-col items-center gap-1 cursor-pointer hover:text-rose-600 transition-colors';
-    div.setAttribute('onclick', '_openCategories()');
-    div.innerHTML = `<i class="fas fa-th-large text-lg"></i><span>Categories</span>`;
-
-    // Home ke baad insert karo
-    const homeBtn = Array.from(nav.querySelectorAll('[onclick]'))
-      .find(el => (el.getAttribute('onclick') || '').includes("navigate('home')"));
-    if (homeBtn && homeBtn.nextSibling) {
-      nav.insertBefore(div, homeBtn.nextSibling);
-    } else {
-      nav.insertBefore(div, nav.firstChild.nextSibling);
-    }
-  }
-
-  function _updateCatNavActive(active) {
-    const btn = document.getElementById('ok-nav-categories');
-    if (!btn) return;
-    if (active) {
-      btn.style.color = '#e11d48';
-    } else {
-      btn.style.color = '';
-    }
-  }
+  }, 1000);
+}
 
 
-  /* ────────────────────────────────────────────────────────────────
-     7. NAVIGATE PATCH — categories view ke liye
-  ──────────────────────────────────────────────────────────────── */
-  function _patchNavigateForCategories() {
-    if (window._catNavPatchApplied) return;
-    window._catNavPatchApplied = true;
+/* ────────────────────────────────────────────────────────────────
+   INIT
+──────────────────────────────────────────────────────────────── */
+function _init() {
+  _buildCatPage();
+  _buildCartPage();
+  _patchNav();
+  _watchData();
 
-    const origNav = window.navigate;
-    if (!origNav) return;
+  const wn = setInterval(() => {
+    if (typeof window.navigate === 'function') { clearInterval(wn); _patchNavigate(); }
+  }, 300);
 
-    window.navigate = function(view, ...args) {
-      // Categories view se kisi aur view pe jaate waqt cat view hide karo
-      if (view !== 'categories') {
-        _closeCategories();
-        _updateCatNavActive(false);
-      }
-      return origNav(view, ...args);
-    };
+  setTimeout(_patchToggleCart, 1200);
+  setTimeout(_patchToggleCart, 3000);
 
-    console.log('[CatNavPatch] ✅ Navigate patch applied');
-  }
+  console.log('%c🗂️ CatNav v3.0 ✅ script-core exact data', 'background:#e11d48;color:white;font-weight:900;font-size:11px;padding:3px 10px;border-radius:5px;');
+}
 
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(_init, 500));
+else setTimeout(_init, 500);
 
-  /* ────────────────────────────────────────────────────────────────
-     8. DYNAMIC SUBCAT DETECTION FROM PRODUCTS
-     (Agar products load ho jaayein toh real subcats use karo)
-  ──────────────────────────────────────────────────────────────── */
-  function _enrichSubcatsFromProducts() {
-    const products = window.products || window.allProducts || window._allProducts || [];
-    if (!products.length) { setTimeout(_enrichSubcatsFromProducts, 2000); return; }
-
-    products.forEach(p => {
-      const cat = p.category || p.cat || '';
-      const subcat = p.subcategory || p.subcat || p.sub_category || '';
-      if (!cat || !subcat) return;
-
-      const catObj = CAT_CONFIG.find(c =>
-        c.name.replace(/[^a-zA-Z]/g,'').toLowerCase() === cat.replace(/[^a-zA-Z]/g,'').toLowerCase()
-        || c.name.toLowerCase().includes(cat.toLowerCase())
-      );
-      if (!catObj) return;
-
-      const exists = catObj.subcats.find(s =>
-        s.name.toLowerCase() === subcat.toLowerCase()
-      );
-      if (!exists) {
-        const img = (p.imgs && p.imgs[0]) || p.img || p.image || '';
-        catObj.subcats.unshift({ name: subcat, img });
-      }
-    });
-
-    // Re-render current panel with updated subcats
-    _renderRightPanel(_activeCatIndex);
-    console.log('[CatNavPatch] ✅ Subcats enriched from products');
-  }
-
-
-  /* ────────────────────────────────────────────────────────────────
-     9. INIT
-  ──────────────────────────────────────────────────────────────── */
-  function _init() {
-    _buildCatPage();
-    _patchBottomNav();
-
-    // Navigate patch — wait for navigate to be defined
-    const waitNav = setInterval(() => {
-      if (typeof window.navigate === 'function') {
-        clearInterval(waitNav);
-        _patchNavigateForCategories();
-      }
-    }, 300);
-
-    // Products se subcat enrich karo
-    setTimeout(_enrichSubcatsFromProducts, 3000);
-
-    console.log('%c🗂️ OutfitKart Categories Nav Patch v1.0 ✅', 'background:#e11d48;color:white;font-weight:900;font-size:11px;padding:3px 10px;border-radius:5px;');
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(_init, 400));
-  } else {
-    setTimeout(_init, 400);
-  }
-
-  // Global exports
-  window._openCategories = window._openCategories;
-  window._closeCategories = window._closeCategories;
-  window._okSelectCategory = window._okSelectCategory;
+Object.assign(window, {
+  _openCategories, _closeCategories, _okCatSel: window._okCatSel,
+  _openCartPage: window._openCartPage, _closeCartPage: window._closeCartPage,
+  _okQ: window._okQ, _okR: window._okR,
+});
 
 })();
