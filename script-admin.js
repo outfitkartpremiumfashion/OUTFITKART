@@ -187,6 +187,7 @@ function switchAdminTab(tab){
     if(tab==='referrals')loadAdminReferrals();
     if(tab==='influencer')loadAdminInfluencerRequests();
     if(tab==='gold')loadAdminGoldProducts();
+    if(tab==='electronics')loadAdminElectronicsProducts();
     if(tab==='promo')loadAdminPromoCodes();
 }
 
@@ -216,26 +217,7 @@ function updateDropdownSubs(catId,subId){
     }catch(e){}
 }
 
-function updateSizeSection(categoryName){
-    const sizeSection=document.getElementById('admin-size-section');
-    const mlSection=document.getElementById('admin-ml-section');
-    if(!sizeSection||!mlSection)return;
-    const isPerf=isPerfumeCategory(categoryName);
-    const isCombo=categoryName==='Combos'||categoryName==='Combo';
-    mlSection.classList.toggle('hidden',!isPerf);
-    if(isPerf){
-        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>el.classList.add('hidden'));
-    } else if(isCombo){
-        // Combos mein sirf Clothing sizes dikhao — Footwear aur Free Size hide karo
-        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>{
-            const label=(el.querySelector('span')||{}).textContent||'';
-            const hide=label.toLowerCase().includes('footwear')||label.toLowerCase().includes('one size');
-            el.classList.toggle('hidden',hide);
-        });
-    } else {
-        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>el.classList.remove('hidden'));
-    }
-}
+function updateSizeSection(categoryName){\n    const sizeSection=document.getElementById('admin-size-section');\n    const mlSection=document.getElementById('admin-ml-section');\n    if(!sizeSection||!mlSection)return;\n    const isPerf=isPerfumeCategory(categoryName);\n    const isCombo=categoryName==='Combos'||categoryName==='Combo';\n    const isElec=categoryName==='Electronics';\n    const isBags=categoryName==='Bags';\n    const isJewel=categoryName==='Jewellery'||categoryName==='Jewelry';\n    mlSection.classList.toggle('hidden',!isPerf);\n    if(isPerf){\n        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>el.classList.add('hidden'));\n    } else if(isElec||isBags||isJewel){\n        // Electronics/Bags/Jewellery mein sirf Free Size dikhao\n        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>{\n            const label=(el.querySelector('span')||{}).textContent||'';\n            const hide=!label.toLowerCase().includes('one size');\n            el.classList.toggle('hidden',hide);\n        });\n        // Free Size checkbox auto-check karo\n        setTimeout(()=>{\n            const freeChk=sizeSection.querySelector('input[value=\"Free Size\"]');\n            if(freeChk)freeChk.checked=true;\n        },50);\n    } else if(isCombo){\n        // Combos: saare size sections dikhao — admin khud choose kare ki konsa size add karna hai\n        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>el.classList.remove('hidden'));\n        if(!sizeSection.querySelector('.combo-hint')){const hint=document.createElement('div');hint.className='combo-hint';hint.style.cssText='font-size:10px;color:#6b7280;background:#fef9c3;border:1px solid #fde047;padding:8px 12px;border-radius:8px;margin-bottom:8px;';hint.innerHTML='<b>\ud83d\udca1 Combo Tip:</b> Sirf woh sizes select karo jo is combo mein hain. User ko sirf wohi options dikhenge. Example: Shirt+Jeans \u2192 Topwear (S/M/L) + Bottomwear (28/30/32)';sizeSection.insertBefore(hint,sizeSection.firstChild);}\n    } else {\n        sizeSection.querySelectorAll('.admin-size-standard').forEach(el=>el.classList.remove('hidden'));\n    }\n}
 
 function toggleProductMode(mode){
     // ScrapingBee removed — always show manual fields
@@ -789,7 +771,52 @@ async function loadAdminGoldProducts(){
 }
 const loadAdminGoldTab=loadAdminGoldProducts;
 
-function _renderGoldAdminUI(container){
+/* Electronics admin — filters from main products table */
+async function loadAdminElectronicsProducts(){
+    const container=document.getElementById('admin-electronics-list');
+    if(!container)return;
+    container.innerHTML=`<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-blue-500 text-3xl"></i><p class="mt-2 text-gray-500 text-sm">Loading...</p></div>`;
+    try{
+        const{data,error}=await dbClient.from('products').select('*').eq('category','Electronics').order('id',{ascending:false});
+        if(error)throw error;
+        const list=data||[];
+        if(!list.length){
+            container.innerHTML=`<div class="text-center py-12 text-blue-600"><span style="font-size:3rem;">⚡</span><p class="font-bold mt-3 text-lg">Abhi koi Electronics product nahi hai</p><p class="text-sm text-gray-500 mt-1">Add Product → Electronics category choose karein</p><button onclick="switchAdminTab('inventory')" class="mt-4 text-sm bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 active:scale-95">+ Add Electronics Product</button></div>`;
+            return;
+        }
+        container.innerHTML=list.map(p=>{
+            const img=p.imgs?.[0]||p.img||'https://placehold.co/80x80/eff6ff/1d4ed8?text=E';
+            const isActive=p.is_active!==false;
+            return`<div class="flex gap-3 items-center p-3 border rounded-xl mb-2 bg-gray-50 hover:bg-blue-50 transition-all">
+                <img src="${img}" class="w-14 h-14 object-cover rounded-lg border flex-shrink-0" onerror="this.src='https://placehold.co/56x56/eff6ff/1d4ed8?text=E'">
+                <div class="flex-1 min-w-0">
+                    <div class="font-bold text-sm text-gray-800 truncate">${p.name}</div>
+                    <div class="text-xs text-blue-600 font-semibold">${p.sub||'Electronics'}</div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-sm font-black text-gray-900">₹${p.price}</span>
+                        ${p.oldprice?`<span class="text-xs line-through text-gray-400">₹${p.oldprice}</span>`:''}
+                        <span class="text-[10px] ${isActive?'bg-green-100 text-green-700':'bg-red-100 text-red-700'} px-1.5 py-0.5 rounded-full font-bold">${isActive?'Active':'Inactive'}</span>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5 flex-shrink-0">
+                    <button onclick="openEditModal(${p.id})" class="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-bold border border-blue-200 hover:bg-blue-200"><i class="fas fa-edit mr-1"></i>Edit</button>
+                    <button onclick="adminToggleProductActive(${p.id},${!isActive})" class="text-xs ${isActive?'bg-red-50 text-red-600 border-red-200':'bg-green-50 text-green-600 border-green-200'} px-3 py-1.5 rounded-lg font-bold border hover:opacity-80">${isActive?'Deactivate':'Activate'}</button>
+                </div>
+            </div>`;
+        }).join('');
+    }catch(err){
+        container.innerHTML=`<div class="text-center text-red-500 py-10"><i class="fas fa-exclamation-circle text-3xl mb-3"></i><p class="font-bold">${err.message}</p></div>`;
+    }
+}
+
+async function adminToggleProductActive(id,newState){
+    try{
+        await dbClient.from('products').update({is_active:newState}).eq('id',id);
+        showToast(newState?'Product Activated ✅':'Product Deactivated ❌');
+        loadAdminElectronicsProducts();
+        renderAdminProducts();
+    }catch(err){showToast('Error: '+err.message);}
+}
     const all=_goldAdminProducts;
     container.innerHTML=`
     <div class="p-4 rounded-xl mb-4" style="background:linear-gradient(135deg,#1a0800,#3d2c00);">
@@ -1003,6 +1030,8 @@ Object.assign(window,{
     sendAdminNotification,searchProductsForNotif,selectNotifProduct,_updateNotifPreview,_clearNotifFields,showPushSetupGuide,
     // Gold
     loadAdminGoldProducts,loadAdminGoldTab,_openGoldForm,_closeGoldForm,_saveGoldProduct,_toggleGoldActive,_deleteGoldProduct,_gFilter,copyGoldSQL,_goldCalcPrice,_autoGenGoldDesc,
+    // Electronics
+    loadAdminElectronicsProducts,adminToggleProductActive,
     // Promo
     loadAdminPromoCodes,createPromoCode,sharePromoToTelegram,sharePromoToWhatsApp,disablePromoCode,copyPromoSQL,
-}); a
+});
