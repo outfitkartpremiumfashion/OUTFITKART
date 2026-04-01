@@ -477,7 +477,6 @@ function _loadProfileReferrals() {
   for (const fn of fns) { if (typeof window[fn] === 'function') { window[fn](); return; } }
 }
 function _loadProfileInfluencer() {
-  // Use the patched version
   if (typeof window.loadInfluencerRequests === 'function') window.loadInfluencerRequests();
 }
 function _loadProfileInfo() {
@@ -1044,9 +1043,12 @@ window._showPWAPopup = function() {
    ═══════════════════════════════════════════════════════════════ */
 window.loadInfluencerRequests = async function() {
   if (!window.currentUser) return;
-  const container = document.getElementById('inf-requests-list');
-  const totalEl = document.getElementById('inf-total-earned');
-  const countEl = document.getElementById('inf-submissions-count');
+  // Overlay clone mein dhundho pehle (openProfilePage clone banata hai)
+  const overlay = document.getElementById('ok-profile-overlay');
+  const scope = (overlay && overlay.style.display !== 'none') ? overlay : document;
+  const container = scope.querySelector('#inf-requests-list') || document.getElementById('inf-requests-list');
+  const totalEl = scope.querySelector('#inf-total-earned') || document.getElementById('inf-total-earned');
+  const countEl = scope.querySelector('#inf-submissions-count') || document.getElementById('inf-submissions-count');
   if (!container) return;
   container.innerHTML = '<div class="text-center py-6"><i class="fas fa-spinner fa-spin text-2xl text-purple-500"></i></div>';
   try {
