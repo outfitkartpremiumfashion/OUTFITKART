@@ -230,7 +230,7 @@
             <div class="md:hidden p-3 bg-white z-20">
                 <div class="flex items-center bg-gray-100 rounded-md relative border border-transparent focus-within:border-rose-500 focus-within:bg-white shadow-sm">
                     <i class="fas fa-search text-gray-400 pl-3"></i>
-                    <input type="text" id="mobile-search" placeholder="Search..." class="w-full bg-transparent py-2 px-3 focus:outline-none text-sm" oninput="handleSearch(this.value)">
+                    <input type="text" id="mobile-search" placeholder="Search..." class="w-full bg-transparent py-2 px-3 focus:outline-none text-sm" oninput="handleSearch(this.value)" onkeydown="if(event.key==='Enter'&&this.value.trim().length>=2){handleSearch(this.value);document.querySelectorAll('.view-section').forEach(v=>v.classList.add('hidden'));var sv=document.getElementById('view-search');if(sv)sv.classList.remove('hidden');window.currentView='search';if(typeof updateBottomNav==='function')updateBottomNav();window.scrollTo(0,0);['desktop-search-results','mobile-search-results'].forEach(function(rid){var r=document.getElementById(rid);if(r)r.classList.add('hidden');});}" inputmode="search">
                     <button id="voice-search-btn" onclick="startVoiceSearch()" class="flex-shrink-0 px-2 text-gray-400 hover:text-rose-600 transition-colors" title="Voice Search"><i class="fas fa-microphone text-sm"></i></button>
                     <div class="h-5 w-px bg-gray-300"></div>
                     <select id="price-sort-mobile" onchange="sortProducts(this.value)" class="bg-transparent text-xs text-gray-700 font-bold focus:outline-none py-2 pl-2 pr-2 cursor-pointer max-w-[85px] appearance-none">
@@ -922,7 +922,7 @@
                                 </button>
                                 <div class="p-4 bg-white hidden text-sm text-gray-600 space-y-2 border-t">
                                     <p>OutfitKart ek premium fashion e-commerce platform hai — trendy aur affordable clothing, perfumes, accessories aur combos ke liye.</p>
-                                    <p><strong>Contact:</strong> WhatsApp: +91 8982296773 | Email: outfitkartpremiumfashion@gmail.com</p>
+                                    <p><strong>Contact:</strong> WhatsApp: +91 8982296773 | Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5baa0a1b3bca1beb4a7a1a5a7b0b8bca0b8b3b4a6bdbcbabb95b2b8b4bcb9fbb6bab8">[email&#160;protected]</a></p>
                                     <p><strong>Follow Us:</strong> Instagram @outfitkart_official | Telegram @outfitkart</p>
                                 </div>
                             </div>
@@ -1018,9 +1018,9 @@
                                         <div><div class="font-bold text-sm text-gray-800">WhatsApp Support</div><div class="text-xs text-gray-500">+91 8982296773 · 10am–8pm</div></div>
                                         <i class="fas fa-chevron-right text-gray-300 text-xs ml-auto"></i>
                                     </a>
-                                    <a href="mailto:outfitkartpremiumfashion@gmail.com" target="_blank" rel="noopener" class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3 active:scale-95 transition-all">
+                                    <a href="/cdn-cgi/l/email-protection#bed1cbcad8d7cad5dfcccaceccdbd3d7cbd3d8dfcdd6d7d1d0fed9d3dfd7d290ddd1d3" target="_blank" rel="noopener" class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-3 active:scale-95 transition-all">
                                         <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0"><i class="fas fa-envelope text-blue-500 text-lg"></i></div>
-                                        <div><div class="font-bold text-sm text-gray-800">Email Support</div><div class="text-xs text-gray-500">outfitkartpremiumfashion@gmail.com</div></div>
+                                        <div><div class="font-bold text-sm text-gray-800">Email Support</div><div class="text-xs text-gray-500"><span class="__cf_email__" data-cfemail="f19e84859798859a9083858183949c98849c97908299989e9fb1969c90989ddf929e9c">[email&#160;protected]</span></div></div>
                                         <i class="fas fa-chevron-right text-gray-300 text-xs ml-auto"></i>
                                     </a>
                                     <a href="https://t.me/outfitkart" target="_blank" rel="noopener" class="flex items-center gap-3 rounded-xl p-3 active:scale-95 transition-all border border-blue-200" style="background:#eff6ff;">
@@ -1426,7 +1426,7 @@
         <div class="flex gap-3"><button onclick="installApp()" class="bg-white text-rose-600 px-6 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-xl active:scale-95">Install App</button><button onclick="hideInstallBanner()" class="text-white/80 hover:text-white px-4 py-2.5 rounded-xl font-semibold hover:bg-white/10">Not Now</button></div>
     </div>
 
-    <script src="script-core.js"></script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script-core.js"></script>
     <script src="script-admin.js"></script>
     <script src="admin-luxury-anim.js"></script>
     <script src="script-auth-gate.js"></script>
@@ -1462,15 +1462,4 @@
                     console.log('SW Registered!');
                     setInterval(() => { reg.update(); }, 1000 * 60 * 60);
                 })
-                .catch(err => console.log('SW Error:', err));
-            });
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                if (event.data && event.data.type === 'SW_UPDATED') {
-                    console.log("Naya version mil gaya! Auto-reloading...");
-                    window.location.reload();
-                }
-            });
-        }
-    </script>
-</body>
-                        </html>
+                .catch(err => console.log('SW Er
