@@ -43,9 +43,9 @@
   .ok-adc{flex-shrink:0;width:190px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;cursor:pointer;position:relative;}
   .ok-adc img{width:100%;height:76px;object-fit:cover;display:block;}
   .ok-adbg{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.5);color:white;font-size:7px;font-weight:800;padding:2px 5px;border-radius:99px;}
-
-  
-
+  `;
+  document.head.appendChild(s);
+})();
 
 /* ────────────────────────────────────────────────────────────────
    CATEGORIES DATA — script-core.js ke exact groups + subcats
