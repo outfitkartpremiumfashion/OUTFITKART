@@ -267,7 +267,7 @@ function handleSearch(q){
     const all=(products||[]).concat(goldProducts||[]);
     const allHits=all.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.brand||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q)||(p.sub||'').toLowerCase().includes(q));
     title.textContent=allHits.length?`"${q}" — ${allHits.length} results`:`"${q}" ke liye koi product nahi mila`;
-    grid.innerHTML=allHits.length?allHits.map(p=>createProductCard(p)).join(''):`<div class="col-span-full" style="text-align:center;padding:60px 0;"><i class="fas fa-search" style="font-size:3rem;color:#d1d5db;"></i><p style="font-size:1.1rem;font-weight:700;color:#9ca3af;margin-top:16px;">Koi product nahi mila</p></div>`;
+    grid.innerHTML=allHits.length?allHits.map(p=>createProductCard(p)).join(''):`<div class="col-span-full" style="text-align:center;padding:60px 0;"><i class="fas fa-search" style="font-size:3rem;color:#d1d5db;"></i><p style="font-size:1.1rem;font-weight:700;color:#9ca3af;margin-top:16px;">Koi product nahi mila</p><p style=\"font-size:0.85rem;color:#e11d48;margin-top:8px;font-weight:600;\">⌨️ Search karne ke liye Enter ya Search button dabao</p></div>`;
 }
 
 function _bindSearchEnterKeys(){
