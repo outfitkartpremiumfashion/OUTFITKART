@@ -477,6 +477,7 @@ function _loadProfileReferrals() {
   for (const fn of fns) { if (typeof window[fn] === 'function') { window[fn](); return; } }
 }
 function _loadProfileInfluencer() {
+  // Use the patched version
   if (typeof window.loadInfluencerRequests === 'function') window.loadInfluencerRequests();
 }
 function _loadProfileInfo() {
@@ -1043,12 +1044,9 @@ window._showPWAPopup = function() {
    ═══════════════════════════════════════════════════════════════ */
 window.loadInfluencerRequests = async function() {
   if (!window.currentUser) return;
-  // Overlay clone mein dhundho pehle (openProfilePage clone banata hai)
-  const overlay = document.getElementById('ok-profile-overlay');
-  const scope = (overlay && overlay.style.display !== 'none') ? overlay : document;
-  const container = scope.querySelector('#inf-requests-list') || document.getElementById('inf-requests-list');
-  const totalEl = scope.querySelector('#inf-total-earned') || document.getElementById('inf-total-earned');
-  const countEl = scope.querySelector('#inf-submissions-count') || document.getElementById('inf-submissions-count');
+  const container = document.getElementById('inf-requests-list');
+  const totalEl = document.getElementById('inf-total-earned');
+  const countEl = document.getElementById('inf-submissions-count');
   if (!container) return;
   container.innerHTML = '<div class="text-center py-6"><i class="fas fa-spinner fa-spin text-2xl text-purple-500"></i></div>';
   try {
@@ -1509,43 +1507,141 @@ function _injectChannelsInProfile() {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION 14 — VOICE WELCOME
+   SECTION 14 — WELCOME ANIMATION (voice removed, visual added)
    ═══════════════════════════════════════════════════════════════ */
-(function _setupVoiceWelcome() {
-  if (window._voiceWelcomeReady) return;
-  window._voiceWelcomeReady = true;
-  function _speakWelcome(userName, isNew) {
-    try {
-      if (!window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const msg = isNew
-        ? 'Welcome to Outfit Kart, ' + userName + '! We are so happy to have you here. Explore our amazing fashion collection!'
-        : 'Welcome back to Outfit Kart, ' + userName + '! Great to see you again. Happy shopping!';
-      function _doSpeak() {
-        const utterance = new SpeechSynthesisUtterance(msg);
-        utterance.lang = 'en-IN'; utterance.rate = 0.90; utterance.pitch = 1.3; utterance.volume = 1.0;
-        const voices = window.speechSynthesis.getVoices();
-        const tests = [
-          v => v.lang === 'en-IN' && /female|woman|girl/i.test(v.name),
-          v => v.lang === 'en-IN' && /raveena|neerja|heera|priya|aditi/i.test(v.name),
-          v => v.lang === 'en-IN',
-          v => v.lang.startsWith('en') && /female|woman|samantha|victoria|karen|susan|zira/i.test(v.name),
-          v => v.lang.startsWith('en'),
-        ];
-        let chosen = null;
-        for (const test of tests) { chosen = voices.find(test); if (chosen) break; }
-        if (chosen) utterance.voice = chosen;
-        window.speechSynthesis.speak(utterance);
-      }
-      if (window.speechSynthesis.getVoices().length > 0) _doSpeak();
-      else { window.speechSynthesis.addEventListener('voiceschanged', function _onV() { window.speechSynthesis.removeEventListener('voiceschanged', _onV); _doSpeak(); }); setTimeout(_doSpeak, 500); }
-    } catch {}
+(function _setupWelcomeAnim() {
+  if (window._welcomeAnimReady) return;
+  window._welcomeAnimReady = true;
+
+  const CSS_ANIM = `
+#ok-welcome-anim {
+  position:fixed;inset:0;z-index:8999;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:transparent;
+}
+.ok-wlc-backdrop {
+  position:fixed;inset:0;background:rgba(0,0,0,0.65);
+  animation:wlcBdIn 0.3s ease forwards;
+}
+@keyframes wlcBdIn{from{opacity:0}to{opacity:1}}
+.ok-wlc-card {
+  position:relative;z-index:1;
+  background:linear-gradient(135deg,#100b00 0%,#1e1500 60%,#0d0800 100%);
+  border:1px solid rgba(201,168,76,0.35);
+  border-radius:4px;
+  padding:36px 40px 30px;
+  max-width:360px;width:90%;
+  text-align:center;
+  box-shadow:0 0 60px rgba(201,168,76,0.15),0 30px 80px rgba(0,0,0,0.9);
+  animation:wlcCardIn 0.55s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes wlcCardIn{
+  0%{opacity:0;transform:scale(0.85) translateY(30px)}
+  100%{opacity:1;transform:scale(1) translateY(0)}
+}
+.ok-wlc-card.ok-wlc-out {
+  animation:wlcCardOut 0.4s ease forwards;
+}
+.ok-wlc-backdrop.ok-wlc-out {
+  animation:wlcBdOut 0.4s ease forwards;
+}
+@keyframes wlcCardOut{to{opacity:0;transform:scale(0.95) translateY(-20px)}}
+@keyframes wlcBdOut{to{opacity:0}}
+.ok-wlc-crown {
+  font-size:2.8rem;
+  animation:crownBounce 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s both;
+  display:block;margin-bottom:12px;
+}
+@keyframes crownBounce{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0deg)}}
+.ok-wlc-title {
+  font-family:'Cinzel',serif;
+  font-size:1.35rem;font-weight:700;
+  background:linear-gradient(135deg,#C9A84C,#F5E6C0,#C9A84C);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin:0 0 6px;letter-spacing:0.05em;
+  animation:fadeSlideUp 0.5s ease 0.3s both;
+}
+.ok-wlc-sub {
+  color:rgba(245,230,192,0.7);
+  font-size:0.82rem;font-weight:400;margin:0 0 20px;
+  animation:fadeSlideUp 0.5s ease 0.45s both;
+}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.ok-wlc-name {
+  color:#F5E6C0;font-size:1rem;font-weight:700;
+  animation:fadeSlideUp 0.5s ease 0.55s both;
+  display:block;margin-bottom:18px;
+}
+.ok-wlc-bar {
+  height:2px;width:0%;
+  background:linear-gradient(90deg,#C9A84C,#F5E6C0);
+  border-radius:2px;margin:0 auto;
+  animation:barGrow 1.8s ease 0.5s forwards;
+}
+@keyframes barGrow{to{width:80%}}
+.ok-wlc-sparkles {
+  position:absolute;inset:0;overflow:hidden;border-radius:4px;pointer-events:none;
+}
+.ok-wlc-sparkle {
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:var(--g1,#C9A84C);opacity:0;
+  animation:sparklePop linear both;
+}
+@keyframes sparklePop{
+  0%{opacity:0;transform:scale(0)}
+  30%{opacity:0.9;transform:scale(1)}
+  100%{opacity:0;transform:scale(0) translateY(-30px)}
+}`;
+
+  function _showWelcomeAnim(userName, isNew) {
+    if (document.getElementById('ok-welcome-anim')) return;
+    if (!document.getElementById('ok-wlc-style')) {
+      const s = document.createElement('style');
+      s.id = 'ok-wlc-style';
+      s.textContent = CSS_ANIM;
+      document.head.appendChild(s);
+    }
+    const greeting = isNew ? 'Welcome to OutfitKart!' : 'Welcome Back!';
+    const sub = isNew ? 'Premium Fashion awaits you ✨' : 'Happy Shopping! 🛍️';
+    const wrap = document.createElement('div');
+    wrap.id = 'ok-welcome-anim';
+
+    // Sparkles
+    let sparklesHTML = '';
+    for (let i = 0; i < 14; i++) {
+      const x = Math.random() * 100, y = Math.random() * 100;
+      const delay = (0.4 + Math.random() * 1).toFixed(2);
+      const dur = (0.4 + Math.random() * 0.5).toFixed(2);
+      sparklesHTML += `<div class="ok-wlc-sparkle" style="left:${x}%;top:${y}%;animation-duration:${dur}s;animation-delay:${delay}s;"></div>`;
+    }
+
+    wrap.innerHTML = `
+      <div class="ok-wlc-backdrop"></div>
+      <div class="ok-wlc-card">
+        <div class="ok-wlc-sparkles">${sparklesHTML}</div>
+        <span class="ok-wlc-crown">👑</span>
+        <h2 class="ok-wlc-title">${greeting}</h2>
+        <p class="ok-wlc-sub">${sub}</p>
+        <span class="ok-wlc-name">${userName}</span>
+        <div class="ok-wlc-bar"></div>
+      </div>`;
+    document.body.appendChild(wrap);
+
+    setTimeout(() => {
+      const card = wrap.querySelector('.ok-wlc-card');
+      const bd = wrap.querySelector('.ok-wlc-backdrop');
+      if (card) card.classList.add('ok-wlc-out');
+      if (bd) bd.classList.add('ok-wlc-out');
+      setTimeout(() => wrap.remove(), 450);
+    }, 2400);
   }
-  window._speakWelcome = _speakWelcome;
+
+  window._showWelcomeAnim = _showWelcomeAnim;
+
   let _prevMobile = (function() { try { const s = localStorage.getItem('outfitkart_session'); return s ? JSON.parse(s).mobile : null; } catch { return null; } })();
   const origSet2 = localStorage.setItem.bind(localStorage);
-  if (!window._voiceLsPatched) {
-    window._voiceLsPatched = true;
+  if (!window._welcomeLsPatched) {
+    window._welcomeLsPatched = true;
     localStorage.setItem = function(key, value) {
       origSet2(key, value);
       if (key === 'outfitkart_session') {
@@ -1554,12 +1650,13 @@ function _injectChannelsInProfile() {
           if (curr && curr.mobile && curr.mobile !== _prevMobile) {
             const isNew = !_prevMobile;
             _prevMobile = curr.mobile;
-            setTimeout(() => _speakWelcome(curr.name || 'Friend', isNew), 1500);
+            setTimeout(() => _showWelcomeAnim(curr.name || 'Friend', isNew), 800);
           }
         } catch {}
       }
     };
   }
+
 })();
 
 
