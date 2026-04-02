@@ -42,14 +42,15 @@
 @keyframes gateOverlayOut { from{opacity:1} to{opacity:0} }
 
 .gate-card {
-  position: relative; background: #100b00;
+  position: relative; background: linear-gradient(160deg,#0e0900 0%,#160d00 40%,#100800 70%,#0a0600 100%);
   border-radius: 0; overflow: hidden;
-  padding: 40px 36px 32px;
+  padding: 44px 38px 34px;
   width: 100%; max-width: 420px;
   box-shadow:
-    0 0 0 1px rgba(201,168,76,0.22),
-    0 40px 120px rgba(0,0,0,0.95),
-    inset 0 0 80px rgba(201,168,76,0.03);
+    0 0 0 1px rgba(201,168,76,0.28),
+    0 0 0 2px rgba(201,168,76,0.06),
+    0 50px 140px rgba(0,0,0,0.98),
+    inset 0 0 100px rgba(201,168,76,0.025);
   animation: cardReveal 0.65s cubic-bezier(0.16,1,0.3,1) 0.1s both;
 }
 @keyframes cardReveal {
@@ -97,26 +98,37 @@
 @keyframes crestIn{0%{opacity:0;transform:translateY(-14px)}100%{opacity:1;transform:translateY(0)}}
 
 .gate-crest-ring {
-  width:68px; height:68px; border-radius:50%;
-  border:1px solid rgba(201,168,76,0.32);
-  background:radial-gradient(circle at 38% 38%,rgba(201,168,76,0.18) 0%,transparent 65%);
+  width:80px; height:80px; border-radius:50%;
+  border:1.5px solid rgba(201,168,76,0.45);
+  background:radial-gradient(circle at 38% 38%,rgba(201,168,76,0.22) 0%,rgba(201,168,76,0.05) 50%,transparent 70%);
   display:flex; align-items:center; justify-content:center;
   margin-bottom:14px; position:relative;
-  box-shadow:0 0 32px rgba(201,168,76,0.1),0 0 0 6px rgba(201,168,76,0.05);
+  box-shadow:0 0 0 4px rgba(201,168,76,0.07),0 0 0 10px rgba(201,168,76,0.03),0 0 40px rgba(201,168,76,0.18),inset 0 0 20px rgba(201,168,76,0.06);
+  animation:ringBreath 3s ease infinite;
+}
+.gate-crest-ring::before {
+  content:''; position:absolute; inset:-8px; border-radius:50%;
+  border:1px solid rgba(201,168,76,0.13);
+  animation:ringBreath 3s ease 0.5s infinite;
 }
 .gate-crest-ring::after {
-  content:''; position:absolute; inset:-5px; border-radius:50%;
-  border:1px solid rgba(201,168,76,0.1);
-  animation:ringBreath 2.5s ease infinite;
+  content:''; position:absolute; inset:-16px; border-radius:50%;
+  border:1px dashed rgba(201,168,76,0.07);
+  animation:ringRotate 12s linear infinite;
 }
-@keyframes ringBreath{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
-.gate-crest-img{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,168,76,0.45));}
+@keyframes ringBreath{0%,100%{opacity:0.7;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes ringRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.gate-crest-img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(201,168,76,0.65)) drop-shadow(0 0 6px rgba(201,168,76,0.4));animation:logoGlow 3s ease infinite;}
+@keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 10px rgba(201,168,76,0.5)) drop-shadow(0 0 5px rgba(201,168,76,0.3))}50%{filter:drop-shadow(0 0 20px rgba(201,168,76,0.85)) drop-shadow(0 0 10px rgba(245,230,192,0.4))}}
 .gate-crest-wordmark{
-  font-family:'Cinzel',serif;font-size:18px;font-weight:700;
-  letter-spacing:0.28em;text-transform:uppercase;
-  background:linear-gradient(135deg,var(--g3) 0%,var(--g1) 40%,var(--g2) 60%,var(--g3) 100%);
+  font-family:'Cinzel',serif;font-size:20px;font-weight:700;
+  letter-spacing:0.32em;text-transform:uppercase;
+  background:linear-gradient(135deg,var(--g3) 0%,var(--g1) 35%,var(--g2) 55%,var(--g1) 75%,var(--g3) 100%);
+  background-size:200% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;
+  animation:wordmarkShimmer 4s linear infinite;
 }
+@keyframes wordmarkShimmer{0%{background-position:0% center}100%{background-position:200% center}}
 .gate-divider{display:flex;align-items:center;gap:8px;margin-top:8px;}
 .gate-divider-line{height:1px;width:32px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.45));}
 .gate-divider-line.r{background:linear-gradient(90deg,rgba(201,168,76,0.45),transparent);}
