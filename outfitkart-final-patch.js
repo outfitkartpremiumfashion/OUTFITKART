@@ -381,13 +381,33 @@ function _fixBottomNav() {
   `;
   document.head.appendChild(style);
 
-  // openProfilePage aur closeProfilePage patch
+  // openProfilePage patch — policy aliases fix
   const _patchProfileFns = () => {
     const origOpen = window.openProfilePage;
     if (typeof origOpen === 'function' && !origOpen._patched) {
       window.openProfilePage = function (page, ...args) {
-        if (page === 'policies') page = 'help'; // alias
-        return origOpen.apply(this, [page, ...args]);
+        // Policy aliases — sab Help & Policies pe jaayenge
+        const policyMap = {'policies':'help','about':'help','terms':'help','privacy':'help','exchange-policy':'help','shipping':'help'};
+        const scrollMap = {'about':'About','terms':'Terms','privacy':'Privacy','exchange-policy':'Return','shipping':'Shipping'};
+        const mappedPage = policyMap[page] || page;
+        const scrollLabel = scrollMap[page];
+        const result = origOpen.apply(this, [mappedPage, ...args]);
+        if (scrollLabel) {
+          setTimeout(() => {
+            const helpBody = document.querySelector('#profile-page-help .profile-page-body');
+            if (!helpBody) return;
+            const btns = helpBody.querySelectorAll('button');
+            for (const btn of btns) {
+              if (btn.textContent.includes(scrollLabel)) {
+                const content = btn.nextElementSibling;
+                if (content && content.classList.contains('hidden')) content.classList.remove('hidden');
+                btn.scrollIntoView({behavior:'smooth', block:'start'});
+                break;
+              }
+            }
+          }, 400);
+        }
+        return result;
       };
       window.openProfilePage._patched = true;
     }
@@ -498,6 +518,74 @@ const SUBCAT_IMGS = {
   'Topwear':            'https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=200&h=220&fit=crop&q=80',
   'Bottomwear':         'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=220&fit=crop&q=80',
   'Footwear':           'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=220&fit=crop&q=80',
+  // Bags
+  'Casual Backpacks':   'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=220&fit=crop&q=80',
+  'Laptop Backpacks':   'https://images.unsplash.com/photo-1622560480654-d96214fdc887?w=200&h=220&fit=crop&q=80',
+  'Anti-Theft Bags':    'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=220&fit=crop&q=80',
+  'Stylish Backpacks':  'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=220&fit=crop&q=80',
+  'Tote Bags':          'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=200&h=220&fit=crop&q=80',
+  'Mini Backpacks':     'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=220&fit=crop&q=80',
+  'Sling Bags':         'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=220&fit=crop&q=80',
+  'Travel Bags':        'https://images.unsplash.com/photo-1581553673739-c4906b5d0de8?w=200&h=220&fit=crop&q=80',
+  'Waist Bags':         'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=220&fit=crop&q=80',
+  'Gym Bags':           'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=200&h=220&fit=crop&q=80',
+  'Duffle Bags':        'https://images.unsplash.com/photo-1581553673739-c4906b5d0de8?w=200&h=220&fit=crop&q=80',
+  // Jewellery
+  'Necklaces':          'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=200&h=220&fit=crop&q=80',
+  'Rings':              'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=200&h=220&fit=crop&q=80',
+  'Bracelets & Bangles':'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=200&h=220&fit=crop&q=80',
+  'Jewelry Sets':       'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=200&h=220&fit=crop&q=80',
+  'Chains':             'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=200&h=220&fit=crop&q=80',
+  'Men Bracelets':      'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=200&h=220&fit=crop&q=80',
+  'Men Rings':          'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=200&h=220&fit=crop&q=80',
+  'Pendants':           'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=200&h=220&fit=crop&q=80',
+  'Kundan':             'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=200&h=220&fit=crop&q=80',
+  'Temple Jewelry':     'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=200&h=220&fit=crop&q=80',
+  'Bridal Sets':        'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=200&h=220&fit=crop&q=80',
+  'Minimal Jewelry':    'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=200&h=220&fit=crop&q=80',
+  'Layered Necklaces':  'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=200&h=220&fit=crop&q=80',
+  'Statement Pieces':   'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=220&fit=crop&q=80',
+  'Nose Pins':          'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=220&fit=crop&q=80',
+  'Hair Jewelry':       'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=200&h=220&fit=crop&q=80',
+  // Electronics
+  'Phone Cases':        'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=200&h=220&fit=crop&q=80',
+  'Charging Cables':    'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=200&h=220&fit=crop&q=80',
+  'Power Banks':        'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=200&h=220&fit=crop&q=80',
+  'Selfie Sticks':      'https://images.unsplash.com/photo-1512054502232-10a0a035d672?w=200&h=220&fit=crop&q=80',
+  'Screen Protectors':  'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=200&h=220&fit=crop&q=80',
+  'Mobile Holders':     'https://images.unsplash.com/photo-1512054502232-10a0a035d672?w=200&h=220&fit=crop&q=80',
+  'USB Hubs':           'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&h=220&fit=crop&q=80',
+  'Wireless Headphones':'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=220&fit=crop&q=80',
+  'Wired Headphones':   'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=220&fit=crop&q=80',
+  'Bluetooth Speakers': 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200&h=220&fit=crop&q=80',
+  'Neckbands':          'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=200&h=220&fit=crop&q=80',
+  'Gaming Controllers': 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=200&h=220&fit=crop&q=80',
+  'Gaming Headsets':    'https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?w=200&h=220&fit=crop&q=80',
+  'Gaming Mouse':       'https://images.unsplash.com/photo-1527814050087-3793815479db?w=200&h=220&fit=crop&q=80',
+  'Gaming Keyboards':   'https://images.unsplash.com/photo-1561316441-1bb013b2cef9?w=200&h=220&fit=crop&q=80',
+  'Gaming Chairs':      'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=200&h=220&fit=crop&q=80',
+  'Smartwatches':       'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=220&fit=crop&q=80',
+  'Smart Bands':        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=220&fit=crop&q=80',
+  'Smart Glasses':      'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=200&h=220&fit=crop&q=80',
+  'Mini Projectors':    'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200&h=220&fit=crop&q=80',
+  'Smart Plugs':        'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&h=220&fit=crop&q=80',
+  'Laptop Stands':      'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=200&h=220&fit=crop&q=80',
+  'Keyboard & Mouse Combos':'https://images.unsplash.com/photo-1561316441-1bb013b2cef9?w=200&h=220&fit=crop&q=80',
+  'Webcams':            'https://images.unsplash.com/photo-1591238372338-f73c0f6e9a74?w=200&h=220&fit=crop&q=80',
+  'USB Drives':         'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&h=220&fit=crop&q=80',
+  'Mouse Pads':         'https://images.unsplash.com/photo-1527814050087-3793815479db?w=200&h=220&fit=crop&q=80',
+  'LED Strip Lights':   'https://images.unsplash.com/photo-1517420879524-86d64ac2f339?w=200&h=220&fit=crop&q=80',
+  'Table Fans':         'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=220&fit=crop&q=80',
+  'Desk Lamps':         'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=200&h=220&fit=crop&q=80',
+  'Digital Clocks':     'https://images.unsplash.com/photo-1524678714210-9917a6c619c2?w=200&h=220&fit=crop&q=80',
+  'Air Purifiers':      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=220&fit=crop&q=80',
+  'Ring Lights':        'https://images.unsplash.com/photo-1614623447622-c6d5c9a6fe69?w=200&h=220&fit=crop&q=80',
+  'Tripods':            'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=200&h=220&fit=crop&q=80',
+  'Green Screens':      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200&h=220&fit=crop&q=80',
+  'Lavalier Mics':      'https://images.unsplash.com/photo-1598653222000-6b7b7a552625?w=200&h=220&fit=crop&q=80',
+  'Camera Lens Kits':   'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=200&h=220&fit=crop&q=80',
+  // Women Shirts
+  'Shirts':             'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=200&h=220&fit=crop&q=80',
 };
 
 function _getSubImg(sub) {
