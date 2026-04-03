@@ -1337,7 +1337,7 @@ function _renderUnbeatableSection() {
   if (!cheap.length) return;
   const section = document.createElement('div');
   section.id = 'ok-unbeatable-section';
-  section.style.cssText = 'background:linear-gradient(135deg,#0a0a0a,#1a1200,#0a0a0a);';
+  section.style.cssText = 'background:linear-gradient(135deg,#1c1204,#2d1e00,#1c1204);';
   section.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div><div style="font-size:10px;font-weight:800;letter-spacing:0.25em;text-transform:uppercase;color:rgba(201,168,76,0.7);margin-bottom:4px;">AI Curated</div><h3 style="font-size:1.2rem;font-weight:900;color:white;margin:0;line-height:1.15;">🔥 Unbeatable Low Prices</h3></div>
@@ -2430,8 +2430,8 @@ Object.assign(window, {
   style.textContent = `
     /* Giveaway ticker bar */
     #ok-giveaway-bar {
-      position: fixed;
-      top: 64px;
+      position: sticky;
+      top: 0;
       left: 0; right: 0;
       z-index: 48;
       background: linear-gradient(90deg, #7c3aed 0%, #e11d48 50%, #f59e0b 100%);
@@ -2612,7 +2612,7 @@ Object.assign(window, {
       margin: 0 16px 16px;
       border-radius: 16px;
       overflow: hidden;
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 40%, #16213e 100%);
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e3a5f 100%);
       border: 1.5px solid rgba(255,255,255,0.08);
     }
     #ok-profile-social-card .psc-header {
@@ -2724,9 +2724,8 @@ Object.assign(window, {
       _openGiveawayPopup();
     });
     document.body.appendChild(bar);
-    // Push main content down
-    const mainEl = document.querySelector('main') || document.getElementById('app-content');
-    if (mainEl) mainEl.style.paddingTop = (parseInt(mainEl.style.paddingTop||0)||64) + 32 + 'px';
+    // Giveaway bar banner ke upar nahi aana chahiye - no paddingTop change needed
+    // bar is fixed at top:64px (after header) with z-index:48
   }
 
   /* ── 4. Giveaway Popup ── */
@@ -4585,13 +4584,6 @@ if (document.readyState === 'loading') {
   const s = document.createElement('style');
   s.id = 'ok-ffp2-css';
   s.textContent = `
-    /* ── PREMIUM HEADER ── */
-    #app-header, header.fixed, header.sticky {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%) !important;
-      border-bottom: 1.5px solid rgba(99,102,241,0.35) !important;
-      box-shadow: 0 2px 20px rgba(99,102,241,0.18) !important;
-    }
-
     /* ── ELECTRONICS PAGE ── */
     #view-electronics {
       position: fixed; inset: 0; z-index: 60;
@@ -4683,28 +4675,8 @@ if (document.readyState === 'loading') {
    PART 1 — PREMIUM HEADER
 ================================================================ */
 function _patchHeader() {
-  const tryPatch = () => {
-    ['#app-header', 'header.fixed', 'header.sticky', '#ok-header', '.ok-header'].forEach(sel => {
-      document.querySelectorAll(sel).forEach(h => {
-        if (h.getAttribute('data-prem')) return;
-        h.setAttribute('data-prem', '1');
-        h.style.setProperty('background', 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%)', 'important');
-        h.style.setProperty('border-bottom', '1.5px solid rgba(99,102,241,0.35)', 'important');
-        h.style.setProperty('box-shadow', '0 2px 20px rgba(99,102,241,0.18)', 'important');
-        // Logo gradient
-        const logo = h.querySelector('[id*="logo"], .logo-text, [class*="logo"], img[alt*="OutfitKart"]');
-        if (logo && logo.tagName !== 'IMG') {
-          logo.style.background = 'linear-gradient(135deg, #a78bfa, #818cf8, #c084fc)';
-          logo.style.webkitBackgroundClip = 'text';
-          logo.style.webkitTextFillColor = 'transparent';
-          logo.style.backgroundClip = 'text';
-        }
-      });
-    });
-  };
-  tryPatch();
-  setTimeout(tryPatch, 800);
-  setTimeout(tryPatch, 2000);
+  // Header intentionally not patched to dark — keeping original white/branded style
+  return;
 }
 
 /* ================================================================
@@ -4713,9 +4685,9 @@ function _patchHeader() {
 const NEW_BANNERS = [
   {
     id:'b1',
-    bg:'linear-gradient(135deg,#020617 0%,#0f2a4a 55%,#020617 100%)',
+    bg:'linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 50%,#1e3a5f 100%)',
     badge:'⚡ NEW LAUNCH',
-    badgeColor:'#3b82f6',
+    badgeColor:'#93c5fd',
     title:'OutfitKart Electronics',
     sub:'Earbuds, Smartwatches, Gaming & More',
     cta:'Explore Now',
@@ -4725,21 +4697,21 @@ const NEW_BANNERS = [
   },
   {
     id:'b2',
-    bg:'linear-gradient(135deg,#0a0010 0%,#1e0a33 55%,#0a0010 100%)',
+    bg:'linear-gradient(135deg,#7f1d1d 0%,#e11d48 55%,#9f1239 100%)',
     badge:'🔥 TRENDING',
-    badgeColor:'#e11d48',
+    badgeColor:'#fecdd3',
     title:"Men's Style Drop",
     sub:'T-Shirts, Oversized, Hoodies & Combos',
     cta:'Shop Men',
-    ctaBg:'linear-gradient(135deg,#e11d48,#be123c)',
+    ctaBg:'linear-gradient(135deg,#be123c,#881337)',
     action:"openSubcatProducts('Men','T-Shirts')",
     imgRight:'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=280&h=180&fit=crop&q=80',
   },
   {
     id:'b3',
-    bg:'linear-gradient(135deg,#00100a 0%,#052e16 55%,#00100a 100%)',
+    bg:'linear-gradient(135deg,#14532d 0%,#16a34a 55%,#166534 100%)',
     badge:'💚 REFER & EARN',
-    badgeColor:'#16a34a',
+    badgeColor:'#bbf7d0',
     title:'₹50+ Per Referral!',
     sub:'Dost ko refer karo — 5% commission wallet mein',
     cta:'Start Earning',
@@ -4749,9 +4721,9 @@ const NEW_BANNERS = [
   },
   {
     id:'b4',
-    bg:'linear-gradient(135deg,#100500 0%,#431407 55%,#100500 100%)',
+    bg:'linear-gradient(135deg,#7c2d12 0%,#ea580c 55%,#9a3412 100%)',
     badge:'👗 NEW ARRIVALS',
-    badgeColor:'#f97316',
+    badgeColor:'#fed7aa',
     title:"Women's Collection",
     sub:'Sarees, Kurtis, Lehengas & Dresses',
     cta:'Shop Women',
@@ -4763,11 +4735,11 @@ const NEW_BANNERS = [
 
 function _buildBannerVisual(b) {
   if (b.imgRight) {
-    return `<div style="position:absolute;right:0;top:0;bottom:0;width:42%;background:url('${b.imgRight}') center/cover no-repeat;mask-image:linear-gradient(to left,rgba(0,0,0,0.6),transparent);-webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.6),transparent);"></div>`;
+    return `<div style="position:absolute;right:0;top:0;bottom:0;width:40%;background:url('${b.imgRight}') center/cover no-repeat;mask-image:linear-gradient(to left,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 60%,transparent 100%);-webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 60%,transparent 100%);"></div>`;
   }
   if (b.icons) {
-    const grid = b.icons.map(ic => `<div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">${ic}</div>`).join('');
-    return `<div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">${grid}</div>`;
+    const grid = b.icons.map(ic => `<div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">${ic}</div>`).join('');
+    return `<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(2,1fr);gap:5px;">${grid}</div>`;
   }
   return '';
 }
@@ -4776,6 +4748,9 @@ function _replaceBanners() {
   const carousel = document.getElementById('banner-carousel');
   if (!carousel || carousel.getAttribute('data-newbanners2')) return;
   carousel.setAttribute('data-newbanners2', '1');
+
+  // Fix carousel height to be compact
+  carousel.style.height = '180px';
 
   carousel.innerHTML = NEW_BANNERS.map((b, i) => `
     <div class="banner-slide" style="
@@ -4788,16 +4763,16 @@ function _replaceBanners() {
       overflow:hidden;
       display:flex;
       align-items:center;
-      padding:18px 16px;
+      padding:16px 18px;
     ">
       ${_buildBannerVisual(b)}
-      <div style="flex:1;position:relative;z-index:2;max-width:60%;">
-        <div style="display:inline-flex;align-items:center;background:${b.badgeColor}28;border:1px solid ${b.badgeColor}55;border-radius:99px;padding:3px 9px;margin-bottom:8px;">
+      <div style="flex:1;position:relative;z-index:2;max-width:58%;">
+        <div style="display:inline-flex;align-items:center;background:${b.badgeColor}30;border:1px solid ${b.badgeColor}60;border-radius:99px;padding:3px 10px;margin-bottom:7px;">
           <span style="font-size:9px;font-weight:900;color:${b.badgeColor};letter-spacing:0.04em;">${b.badge}</span>
         </div>
-        <h3 style="font-size:1.05rem;font-weight:900;color:white;margin:0 0 4px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,0.6);">${b.title}</h3>
-        <p style="font-size:10px;color:rgba(255,255,255,0.6);margin:0 0 12px;line-height:1.4;">${b.sub}</p>
-        <button onclick="${b.action}" style="background:${b.ctaBg};color:white;border:none;padding:8px 18px;border-radius:99px;font-size:11px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.35);">${b.cta} →</button>
+        <h3 style="font-size:1rem;font-weight:900;color:white;margin:0 0 3px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,0.5);">${b.title}</h3>
+        <p style="font-size:9.5px;color:rgba(255,255,255,0.65);margin:0 0 10px;line-height:1.35;">${b.sub}</p>
+        <button onclick="${b.action}" style="background:${b.ctaBg};color:white;border:none;padding:7px 16px;border-radius:99px;font-size:10.5px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);">${b.cta} →</button>
       </div>
     </div>`).join('');
 
@@ -5363,28 +5338,26 @@ Object.assign(window, {
 
     /* Header */
     #ok-cph {
-      background: linear-gradient(135deg, #1a0030 0%, #2d0050 50%, #1a0030 100%) !important;
+      background: white !important;
       height: 58px;
       display: flex; align-items: center;
       padding: 0 14px; gap: 10px;
-      border-bottom: 1px solid rgba(225,29,72,0.4);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      border-bottom: 2px solid #e11d48;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       flex-shrink: 0;
     }
     #ok-cph h2 {
       font-size: 1.05rem; font-weight: 900; margin: 0; flex: 1;
-      background: linear-gradient(135deg, #f9a8d4, #e11d48, #f9a8d4);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #111827;
       letter-spacing: 0.02em;
     }
     #ok-back-btn {
       width: 36px; height: 36px; border-radius: 50%;
-      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      background: #f3f4f6; border: 1px solid #e5e7eb;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: white; font-size: 15px; flex-shrink: 0;
+      cursor: pointer; color: #374151; font-size: 15px; flex-shrink: 0;
     }
-    #ok-back-btn:active { background: rgba(255,255,255,0.2); }
+    #ok-back-btn:active { background: #e5e7eb; }
 
     /* Search bar */
     #ok-cat-search-wrap {
